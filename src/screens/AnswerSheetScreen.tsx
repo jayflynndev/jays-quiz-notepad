@@ -1,4 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import {
+  activateKeepAwakeAsync,
+  deactivateKeepAwake,
+} from "expo-keep-awake";
 import {
   Alert,
   KeyboardAvoidingView,
@@ -19,6 +24,7 @@ import {
   loadAnswerSheet,
   saveAnswerSheet,
 } from "../lib/storage/answerSheetStorage";
+import { loadSettings } from "../lib/storage/settingsStorage";
 import { colors } from "../theme/colors";
 import { spacing } from "../theme/spacing";
 import type { AnswerSheetScreenProps } from "../navigation/types";
@@ -29,6 +35,8 @@ import {
   type RoundNumber,
 } from "../types/answerSheet";
 
+const KEEP_AWAKE_TAG = "answer-sheet-screen";
+
 export function AnswerSheetScreen({ navigation }: AnswerSheetScreenProps) {
   const { width } = useWindowDimensions();
   const hasLoadedSavedAnswers = useRef(false);
@@ -36,8 +44,49 @@ export function AnswerSheetScreen({ navigation }: AnswerSheetScreenProps) {
   const [answerSheet, setAnswerSheet] = useState<AnswerSheetState>(
     createInitialAnswerSheet
   );
+  const [keepScreenAwakeDuringQuiz, setKeepScreenAwakeDuringQuiz] =
+    useState(false);
   const playerWidth = Math.max(width - spacing.lg * 2, 200);
   const playerHeight = Math.round(playerWidth * (9 / 16));
+
+  useFocusEffect(
+    React.useCallback(() => {
+      let isActive = true;
+
+      async function restoreKeepAwakeSetting() {
+        const savedSettings = await loadSettings();
+
+        if (isActive) {
+          setKeepScreenAwakeDuringQuiz(
+            savedSettings.keepScreenAwakeDuringQuiz
+          );
+        }
+      }
+
+      void restoreKeepAwakeSetting();
+
+      return () => {
+        isActive = false;
+        setKeepScreenAwakeDuringQuiz(false);
+        void deactivateKeepAwake(KEEP_AWAKE_TAG);
+      };
+    }, [])
+  );
+
+  useEffect(() => {
+    if (keepScreenAwakeDuringQuiz) {
+      void activateKeepAwakeAsync(KEEP_AWAKE_TAG);
+      return;
+    }
+
+    void deactivateKeepAwake(KEEP_AWAKE_TAG);
+  }, [keepScreenAwakeDuringQuiz]);
+
+  useEffect(() => {
+    return () => {
+      void deactivateKeepAwake(KEEP_AWAKE_TAG);
+    };
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
