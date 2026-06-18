@@ -14,6 +14,7 @@ import {
   ScrollView,
   useWindowDimensions,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import YoutubeIframe from "react-native-youtube-iframe";
 import { AdBannerPlaceholder } from "../components/AdBannerPlaceholder";
 import { AnswerInput } from "../components/AnswerInput";
@@ -179,62 +180,64 @@ export function AnswerSheetScreen({ navigation }: AnswerSheetScreenProps) {
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <View style={styles.stickyPlayerSection}>
-        <View style={styles.youtubeContainer}>
-          <YoutubeIframe
-            height={playerHeight}
-            width={playerWidth}
-            videoId={currentQuiz.youtubeVideoId}
-            play={false}
-          />
-        </View>
-      </View>
-
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View style={styles.adSection}>
-          <AdBannerPlaceholder />
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.stickyPlayerSection}>
+          <View style={styles.youtubeContainer}>
+            <YoutubeIframe
+              height={playerHeight}
+              width={playerWidth}
+              videoId={currentQuiz.youtubeVideoId}
+              play={false}
+            />
+          </View>
         </View>
 
-        <Text style={styles.heading}>Answer Sheet</Text>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.adSection}>
+            <AdBannerPlaceholder />
+          </View>
 
-        {ROUND_NUMBERS.map((roundNumber) => (
-          <RoundSection
-            key={roundNumber}
-            roundNumber={roundNumber}
-            answers={answerSheet.rounds[roundNumber]}
-            onAnswerChange={(answerIndex, value) =>
-              updateRoundAnswer(roundNumber, answerIndex, value)
-            }
-          />
-        ))}
+          <Text style={styles.heading}>Answer Sheet</Text>
 
-        <View style={styles.tieBreakerSection}>
-          <Text style={styles.sectionHeading}>Tie-breaker</Text>
-          <AnswerInput
-            label="Tie-breaker answer"
-            value={answerSheet.tieBreaker}
-            onChangeText={updateTieBreaker}
-            placeholder="Your tie-breaker answer"
-          />
-        </View>
+          {ROUND_NUMBERS.map((roundNumber) => (
+            <RoundSection
+              key={roundNumber}
+              roundNumber={roundNumber}
+              answers={answerSheet.rounds[roundNumber]}
+              onAnswerChange={(answerIndex, value) =>
+                updateRoundAnswer(roundNumber, answerIndex, value)
+              }
+            />
+          ))}
 
-        <View style={styles.buttonSection}>
-          <AppButton
-            title="Clear Answers"
-            variant="secondary"
-            onPress={handleClearAnswersPress}
-          />
-          <AppButton
-            title="Back Home"
-            variant="secondary"
-            onPress={() => navigation.navigate("Home")}
-          />
-        </View>
-      </ScrollView>
+          <View style={styles.tieBreakerSection}>
+            <Text style={styles.sectionHeading}>Tie-breaker</Text>
+            <AnswerInput
+              label="Tie-breaker answer"
+              value={answerSheet.tieBreaker}
+              onChangeText={updateTieBreaker}
+              placeholder="Your tie-breaker answer"
+            />
+          </View>
+
+          <View style={styles.buttonSection}>
+            <AppButton
+              title="Clear Answers"
+              variant="secondary"
+              onPress={handleClearAnswersPress}
+            />
+            <AppButton
+              title="Back Home"
+              variant="secondary"
+              onPress={() => navigation.navigate("Home")}
+            />
+          </View>
+        </ScrollView>
+      </SafeAreaView>
     </KeyboardAvoidingView>
   );
 }
@@ -243,6 +246,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  safeArea: {
+    flex: 1,
   },
   scrollView: {
     flex: 1,

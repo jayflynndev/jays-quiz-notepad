@@ -1,5 +1,6 @@
 import React from "react";
 import { View, StyleSheet, Text, ScrollView } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { AdBannerPlaceholder } from "../components/AdBannerPlaceholder";
 import { AppButton } from "../components/AppButton";
 import { QuizCard } from "../components/QuizCard";
@@ -37,33 +38,38 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
   const fallbackMessage = getQuizFallbackMessage(errorMessage);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.headerSection}>
-        <Text style={styles.title}>Jay's Quiz Notepad</Text>
-        <Text style={styles.subtitle}>
-          Watch the quiz and write your answers in one place.
-        </Text>
-      </View>
+    <SafeAreaView style={styles.container}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.content}
+      >
+        <View style={styles.headerSection}>
+          <Text style={styles.title}>Jay's Quiz Notepad</Text>
+          <Text style={styles.subtitle}>
+            Watch the quiz and write your answers in one place.
+          </Text>
+        </View>
 
-      <QuizCard
-        quiz={currentQuiz}
-        isLoading={isLoading}
-        fallbackMessage={fallbackMessage}
-        onPressAnswerSheet={() => navigation.navigate("AnswerSheet")}
-      />
-
-      <View style={styles.buttonSection}>
-        <AppButton
-          title="Settings"
-          variant="secondary"
-          onPress={() => navigation.navigate("Settings")}
+        <QuizCard
+          quiz={currentQuiz}
+          isLoading={isLoading}
+          fallbackMessage={fallbackMessage}
+          onPressAnswerSheet={() => navigation.navigate("AnswerSheet")}
         />
-      </View>
 
-      <View style={styles.adSection}>
-        <AdBannerPlaceholder />
-      </View>
-    </ScrollView>
+        <View style={styles.buttonSection}>
+          <AppButton
+            title="Settings"
+            variant="secondary"
+            onPress={() => navigation.navigate("Settings")}
+          />
+        </View>
+
+        <View style={styles.adSection}>
+          <AdBannerPlaceholder />
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -71,6 +77,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  scrollView: {
+    flex: 1,
   },
   content: {
     flexGrow: 1,

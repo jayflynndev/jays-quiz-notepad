@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Alert, View, StyleSheet, Text, ScrollView, Switch } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { AppButton } from "../components/AppButton";
 import {
   cancelQuizReminder,
@@ -110,75 +111,80 @@ export function SettingsScreen({ navigation }: SettingsScreenProps) {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.heading}>Settings</Text>
+    <SafeAreaView style={styles.container}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.content}
+      >
+        <Text style={styles.heading}>Settings</Text>
 
-      <View style={styles.settingRow}>
-        <View style={styles.settingTextSection}>
-          <Text style={styles.settingTitle}>Keep screen awake during quiz</Text>
-          <Text style={styles.settingDescription}>
-            Prevents your phone from sleeping while the answer sheet is open.
-          </Text>
+        <View style={styles.settingRow}>
+          <View style={styles.settingTextSection}>
+            <Text style={styles.settingTitle}>Keep screen awake during quiz</Text>
+            <Text style={styles.settingDescription}>
+              Prevents your phone from sleeping while the answer sheet is open.
+            </Text>
+          </View>
+          <Switch
+            value={settings.keepScreenAwakeDuringQuiz}
+            onValueChange={updateKeepScreenAwakeDuringQuiz}
+            trackColor={{
+              false: colors.border,
+              true: colors.primary,
+            }}
+            thumbColor={colors.white}
+          />
         </View>
-        <Switch
-          value={settings.keepScreenAwakeDuringQuiz}
-          onValueChange={updateKeepScreenAwakeDuringQuiz}
-          trackColor={{
-            false: colors.border,
-            true: colors.primary,
-          }}
-          thumbColor={colors.white}
-        />
-      </View>
 
-      <View style={styles.settingRow}>
-        <View style={styles.settingTextSection}>
-          <Text style={styles.settingTitle}>Thursday quiz reminder</Text>
-          <Text style={styles.settingDescription}>
-            Sends a local reminder every Thursday at 7:00pm.
-          </Text>
+        <View style={styles.settingRow}>
+          <View style={styles.settingTextSection}>
+            <Text style={styles.settingTitle}>Thursday quiz reminder</Text>
+            <Text style={styles.settingDescription}>
+              Sends a local reminder every Thursday at 7:00pm.
+            </Text>
+          </View>
+          <Switch
+            value={settings.thursdayQuizReminderEnabled}
+            onValueChange={(value) => {
+              void updateQuizReminder("thursday", value);
+            }}
+            trackColor={{
+              false: colors.border,
+              true: colors.primary,
+            }}
+            thumbColor={colors.white}
+          />
         </View>
-        <Switch
-          value={settings.thursdayQuizReminderEnabled}
-          onValueChange={(value) => {
-            void updateQuizReminder("thursday", value);
-          }}
-          trackColor={{
-            false: colors.border,
-            true: colors.primary,
-          }}
-          thumbColor={colors.white}
-        />
-      </View>
 
-      <View style={styles.settingRow}>
-        <View style={styles.settingTextSection}>
-          <Text style={styles.settingTitle}>Saturday quiz reminder</Text>
-          <Text style={styles.settingDescription}>
-            Sends a local reminder every Saturday at 7:00pm.
-          </Text>
+        <View style={styles.settingRow}>
+          <View style={styles.settingTextSection}>
+            <Text style={styles.settingTitle}>Saturday quiz reminder</Text>
+            <Text style={styles.settingDescription}>
+              Sends a local reminder every Saturday at 7:00pm.
+            </Text>
+          </View>
+          <Switch
+            value={settings.saturdayQuizReminderEnabled}
+            onValueChange={(value) => {
+              void updateQuizReminder("saturday", value);
+            }}
+            trackColor={{
+              false: colors.border,
+              true: colors.primary,
+            }}
+            thumbColor={colors.white}
+          />
         </View>
-        <Switch
-          value={settings.saturdayQuizReminderEnabled}
-          onValueChange={(value) => {
-            void updateQuizReminder("saturday", value);
-          }}
-          trackColor={{
-            false: colors.border,
-            true: colors.primary,
-          }}
-          thumbColor={colors.white}
-        />
-      </View>
 
-      <View style={styles.buttonSection}>
-        <AppButton
-          title="Back Home"
-          variant="secondary"
-          onPress={() => navigation.navigate("Home")}
-        />
-      </View>
-    </ScrollView>
+        <View style={styles.buttonSection}>
+          <AppButton
+            title="Back Home"
+            variant="secondary"
+            onPress={() => navigation.navigate("Home")}
+          />
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -186,6 +192,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  scrollView: {
+    flex: 1,
   },
   content: {
     paddingHorizontal: spacing.lg,

@@ -14,14 +14,7 @@ export function AppNavigator() {
     <NavigationContainer>
       <Stack.Navigator
         screenOptions={{
-          headerStyle: {
-            backgroundColor: colors.primary,
-          },
-          headerTintColor: colors.white,
-          headerTitleStyle: {
-            fontWeight: "bold",
-            fontSize: 18,
-          },
+          headerShown: false,
           contentStyle: {
             backgroundColor: colors.background,
           },
@@ -30,23 +23,14 @@ export function AppNavigator() {
         <Stack.Screen
           name="Home"
           component={HomeScreen}
-          options={{
-            title: "Jay's Quiz Notepad",
-          }}
         />
         <Stack.Screen
           name="AnswerSheet"
           component={AnswerSheetScreen}
-          options={{
-            title: "Answer Sheet",
-          }}
         />
         <Stack.Screen
           name="Settings"
           component={SettingsScreen}
-          options={{
-            title: "Settings",
-          }}
         />
       </Stack.Navigator>
     </NavigationContainer>
