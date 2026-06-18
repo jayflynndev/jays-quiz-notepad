@@ -16,15 +16,45 @@ function isStoredSettings(value: unknown): value is AppSettings {
   return typeof candidate.keepScreenAwakeDuringQuiz === "boolean";
 }
 
+function readOptionalBoolean(value: unknown, fallback: boolean) {
+  return typeof value === "boolean" ? value : fallback;
+}
+
+function readOptionalStringOrNull(value: unknown) {
+  return typeof value === "string" ? value : null;
+}
+
 function parseSettings(value: string): AppSettings {
   try {
     const parsed: unknown = JSON.parse(value);
+
+    if (typeof parsed !== "object" || parsed === null) {
+      return defaultAppSettings;
+    }
 
     if (!isStoredSettings(parsed)) {
       return defaultAppSettings;
     }
 
-    return parsed;
+    const candidate = parsed as Record<string, unknown>;
+
+    return {
+      keepScreenAwakeDuringQuiz: parsed.keepScreenAwakeDuringQuiz,
+      thursdayQuizReminderEnabled: readOptionalBoolean(
+        candidate.thursdayQuizReminderEnabled,
+        defaultAppSettings.thursdayQuizReminderEnabled
+      ),
+      thursdayQuizReminderId: readOptionalStringOrNull(
+        candidate.thursdayQuizReminderId
+      ),
+      saturdayQuizReminderEnabled: readOptionalBoolean(
+        candidate.saturdayQuizReminderEnabled,
+        defaultAppSettings.saturdayQuizReminderEnabled
+      ),
+      saturdayQuizReminderId: readOptionalStringOrNull(
+        candidate.saturdayQuizReminderId
+      ),
+    };
   } catch {
     return defaultAppSettings;
   }

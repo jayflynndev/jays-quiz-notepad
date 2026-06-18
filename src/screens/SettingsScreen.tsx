@@ -1,6 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { View, StyleSheet, Text, ScrollView, Switch } from "react-native";
+import { Alert, View, StyleSheet, Text, ScrollView, Switch } from "react-native";
 import { AppButton } from "../components/AppButton";
+import {
+  cancelQuizReminder,
+  ensureQuizReminderPermissions,
+  scheduleQuizReminder,
+  type QuizReminderDay,
+} from "../lib/notifications/quizReminders";
 import { loadSettings, saveSettings } from "../lib/storage/settingsStorage";
 import { colors } from "../theme/colors";
 import { spacing } from "../theme/spacing";
@@ -41,6 +47,68 @@ export function SettingsScreen({ navigation }: SettingsScreenProps) {
     void saveSettings(nextSettings);
   }
 
+  async function updateQuizReminder(day: QuizReminderDay, value: boolean) {
+    if (!value) {
+      const notificationId =
+        day === "thursday"
+          ? settings.thursdayQuizReminderId
+          : settings.saturdayQuizReminderId;
+
+      await cancelQuizReminder(notificationId);
+
+      const nextSettings: AppSettings =
+        day === "thursday"
+          ? {
+              ...settings,
+              thursdayQuizReminderEnabled: false,
+              thursdayQuizReminderId: null,
+            }
+          : {
+              ...settings,
+              saturdayQuizReminderEnabled: false,
+              saturdayQuizReminderId: null,
+            };
+
+      setSettings(nextSettings);
+      await saveSettings(nextSettings);
+      return;
+    }
+
+    const hasPermission = await ensureQuizReminderPermissions();
+
+    if (!hasPermission) {
+      Alert.alert(
+        "Notifications disabled",
+        "Please allow notifications to use quiz reminders."
+      );
+      return;
+    }
+
+    const previousNotificationId =
+      day === "thursday"
+        ? settings.thursdayQuizReminderId
+        : settings.saturdayQuizReminderId;
+
+    await cancelQuizReminder(previousNotificationId);
+
+    const notificationId = await scheduleQuizReminder(day);
+    const nextSettings: AppSettings =
+      day === "thursday"
+        ? {
+            ...settings,
+            thursdayQuizReminderEnabled: true,
+            thursdayQuizReminderId: notificationId,
+          }
+        : {
+            ...settings,
+            saturdayQuizReminderEnabled: true,
+            saturdayQuizReminderId: notificationId,
+          };
+
+    setSettings(nextSettings);
+    await saveSettings(nextSettings);
+  }
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.heading}>Settings</Text>
@@ -55,6 +123,46 @@ export function SettingsScreen({ navigation }: SettingsScreenProps) {
         <Switch
           value={settings.keepScreenAwakeDuringQuiz}
           onValueChange={updateKeepScreenAwakeDuringQuiz}
+          trackColor={{
+            false: colors.border,
+            true: colors.primary,
+          }}
+          thumbColor={colors.white}
+        />
+      </View>
+
+      <View style={styles.settingRow}>
+        <View style={styles.settingTextSection}>
+          <Text style={styles.settingTitle}>Thursday quiz reminder</Text>
+          <Text style={styles.settingDescription}>
+            Sends a local reminder every Thursday at 7:00pm.
+          </Text>
+        </View>
+        <Switch
+          value={settings.thursdayQuizReminderEnabled}
+          onValueChange={(value) => {
+            void updateQuizReminder("thursday", value);
+          }}
+          trackColor={{
+            false: colors.border,
+            true: colors.primary,
+          }}
+          thumbColor={colors.white}
+        />
+      </View>
+
+      <View style={styles.settingRow}>
+        <View style={styles.settingTextSection}>
+          <Text style={styles.settingTitle}>Saturday quiz reminder</Text>
+          <Text style={styles.settingDescription}>
+            Sends a local reminder every Saturday at 7:00pm.
+          </Text>
+        </View>
+        <Switch
+          value={settings.saturdayQuizReminderEnabled}
+          onValueChange={(value) => {
+            void updateQuizReminder("saturday", value);
+          }}
           trackColor={{
             false: colors.border,
             true: colors.primary,
@@ -96,6 +204,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     flexDirection: "row",
     justifyContent: "space-between",
+    marginBottom: spacing.md,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
   },
