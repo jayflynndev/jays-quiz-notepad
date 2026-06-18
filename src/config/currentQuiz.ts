@@ -7,7 +7,7 @@ export type CurrentQuiz = {
   startTime: string;
 };
 
-export const currentQuiz: CurrentQuiz = {
+export const fallbackCurrentQuiz: CurrentQuiz = {
   title: "Jay's Virtual Pub Quiz",
   youtubeVideoId: "dQw4w9WgXcQ",
   status: "live",

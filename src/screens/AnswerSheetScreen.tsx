@@ -19,7 +19,7 @@ import { AdBannerPlaceholder } from "../components/AdBannerPlaceholder";
 import { AnswerInput } from "../components/AnswerInput";
 import { AppButton } from "../components/AppButton";
 import { RoundSection } from "../components/RoundSection";
-import { currentQuiz } from "../config/currentQuiz";
+import { useCurrentQuiz } from "../hooks/useCurrentQuiz";
 import {
   clearSavedAnswerSheet,
   loadAnswerSheet,
@@ -40,6 +40,7 @@ const KEEP_AWAKE_TAG = "answer-sheet-screen";
 
 export function AnswerSheetScreen({ navigation }: AnswerSheetScreenProps) {
   const { width } = useWindowDimensions();
+  const { currentQuiz } = useCurrentQuiz();
   const hasLoadedSavedAnswers = useRef(false);
   const shouldSkipNextSave = useRef(false);
   const [answerSheet, setAnswerSheet] = useState<AnswerSheetState>(
