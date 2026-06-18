@@ -1,10 +1,11 @@
 import { doc, getDoc } from "firebase/firestore";
 import { getFirebaseDb } from "../../config/firebase";
-import type { CurrentQuiz, QuizStatus } from "../../config/currentQuiz";
+import type { Quiz, QuizStatus } from "../../config/currentQuiz";
 
-const CURRENT_QUIZ_COLLECTION = "appConfig";
+const APP_CONFIG_COLLECTION = "appConfig";
 const CURRENT_QUIZ_DOCUMENT = "currentQuiz";
-const CURRENT_QUIZ_PATH = `${CURRENT_QUIZ_COLLECTION}/${CURRENT_QUIZ_DOCUMENT}`;
+const QUIZZES_COLLECTION = "quizzes";
+const CURRENT_QUIZ_PATH = `${APP_CONFIG_COLLECTION}/${CURRENT_QUIZ_DOCUMENT}`;
 
 function getErrorDetails(error: unknown) {
   if (typeof error !== "object" || error === null) {
@@ -29,7 +30,19 @@ function isQuizStatus(value: unknown): value is QuizStatus {
   return value === "upcoming" || value === "live" || value === "ended";
 }
 
-function parseCurrentQuiz(value: unknown): CurrentQuiz | null {
+function parseCurrentQuizId(value: unknown) {
+  if (typeof value !== "object" || value === null) {
+    return null;
+  }
+
+  const candidate = value as Record<string, unknown>;
+
+  return typeof candidate.quizId === "string" && candidate.quizId.length > 0
+    ? candidate.quizId
+    : null;
+}
+
+function parseQuiz(value: unknown, quizId: string): Quiz | null {
   if (typeof value !== "object" || value === null) {
     return null;
   }
@@ -46,6 +59,7 @@ function parseCurrentQuiz(value: unknown): CurrentQuiz | null {
   }
 
   return {
+    id: quizId,
     title: candidate.title,
     youtubeVideoId: candidate.youtubeVideoId,
     status: candidate.status,
@@ -53,7 +67,7 @@ function parseCurrentQuiz(value: unknown): CurrentQuiz | null {
   };
 }
 
-export async function fetchCurrentQuizFromFirestore() {
+export async function getCurrentQuizId() {
   const db = getFirebaseDb();
 
   if (db === null) {
@@ -64,29 +78,72 @@ export async function fetchCurrentQuizFromFirestore() {
 
   try {
     const currentQuizSnapshot = await getDoc(
-      doc(db, CURRENT_QUIZ_COLLECTION, CURRENT_QUIZ_DOCUMENT)
+      doc(db, APP_CONFIG_COLLECTION, CURRENT_QUIZ_DOCUMENT)
     );
 
     if (!currentQuizSnapshot.exists()) {
-      throw new Error("Firestore current quiz document was not found");
+      throw new Error("Firestore current quiz reference was not found");
     }
 
-    const currentQuiz = parseCurrentQuiz(currentQuizSnapshot.data());
+    const quizId = parseCurrentQuizId(currentQuizSnapshot.data());
 
-    if (currentQuiz === null) {
+    if (quizId === null) {
       console.warn(
-        "[Firestore] Expected currentQuiz fields: title, youtubeVideoId, status, startTime"
+        "[Firestore] Expected appConfig/currentQuiz fields: quizId"
       );
-      throw new Error("Firestore current quiz document has an invalid shape");
+      throw new Error("Firestore current quiz reference has an invalid shape");
     }
 
-    console.info("[Firestore] Current quiz loaded successfully");
+    console.info(`[Firestore] Current quiz ID loaded: ${quizId}`);
 
-    return currentQuiz;
+    return quizId;
   } catch (error) {
     const { code, message } = getErrorDetails(error);
-    console.warn(`[Firestore] Current quiz error code: ${code}`);
-    console.warn(`[Firestore] Current quiz error message: ${message}`);
+    console.warn(`[Firestore] Current quiz ID error code: ${code}`);
+    console.warn(`[Firestore] Current quiz ID error message: ${message}`);
     throw error;
   }
+}
+
+export async function getQuizById(quizId: string) {
+  const db = getFirebaseDb();
+
+  if (db === null) {
+    throw new Error("Firebase is not configured");
+  }
+
+  const quizPath = `${QUIZZES_COLLECTION}/${quizId}`;
+  console.info(`[Firestore] Reading path: ${quizPath}`);
+
+  try {
+    const quizSnapshot = await getDoc(doc(db, QUIZZES_COLLECTION, quizId));
+
+    if (!quizSnapshot.exists()) {
+      throw new Error(`Firestore quiz document was not found: ${quizId}`);
+    }
+
+    const quiz = parseQuiz(quizSnapshot.data(), quizId);
+
+    if (quiz === null) {
+      console.warn(
+        "[Firestore] Expected quiz fields: title, youtubeVideoId, status, startTime"
+      );
+      throw new Error("Firestore quiz document has an invalid shape");
+    }
+
+    console.info(`[Firestore] Quiz loaded successfully: ${quizId}`);
+
+    return quiz;
+  } catch (error) {
+    const { code, message } = getErrorDetails(error);
+    console.warn(`[Firestore] Quiz error code: ${code}`);
+    console.warn(`[Firestore] Quiz error message: ${message}`);
+    throw error;
+  }
+}
+
+export async function fetchCurrentQuizFromFirestore() {
+  const quizId = await getCurrentQuizId();
+
+  return getQuizById(quizId);
 }

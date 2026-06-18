@@ -1,19 +1,19 @@
 import { useEffect, useState } from "react";
 import {
   fallbackCurrentQuiz,
-  type CurrentQuiz,
+  type Quiz,
 } from "../config/currentQuiz";
 import { fetchCurrentQuizFromFirestore } from "../lib/firebase/currentQuiz";
 
 type CurrentQuizState = {
-  currentQuiz: CurrentQuiz;
+  currentQuiz: Quiz;
   isLoading: boolean;
   errorMessage: string | null;
 };
 
 export function useCurrentQuiz(): CurrentQuizState {
   const [currentQuiz, setCurrentQuiz] =
-    useState<CurrentQuiz>(fallbackCurrentQuiz);
+    useState<Quiz>(fallbackCurrentQuiz);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 

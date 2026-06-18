@@ -1,13 +1,15 @@
 export type QuizStatus = "upcoming" | "live" | "ended";
 
-export type CurrentQuiz = {
+export type Quiz = {
+  id?: string;
   title: string;
   youtubeVideoId: string;
   status: QuizStatus;
   startTime: string;
 };
 
-export const fallbackCurrentQuiz: CurrentQuiz = {
+export const fallbackCurrentQuiz: Quiz = {
+  id: "local-fallback",
   title: "Jay's Virtual Pub Quiz",
   youtubeVideoId: "dQw4w9WgXcQ",
   status: "live",

@@ -22,11 +22,11 @@ function getQuizFallbackMessage(errorMessage: string | null) {
   }
 
   if (errorMessage.includes("not found")) {
-    return "Firestore document appConfig/currentQuiz was not found. Showing local fallback.";
+    return "Firestore current quiz reference or quiz document was not found. Showing local fallback.";
   }
 
   if (errorMessage.includes("invalid shape")) {
-    return "Firestore quiz data has invalid fields. Showing local fallback.";
+    return "Firestore quiz reference or quiz data has invalid fields. Showing local fallback.";
   }
 
   if (errorMessage.includes("permission-denied")) {
