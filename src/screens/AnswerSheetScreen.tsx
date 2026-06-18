@@ -32,7 +32,10 @@ import { spacing } from "../theme/spacing";
 import type { AnswerSheetScreenProps } from "../navigation/types";
 import {
   ROUND_NUMBERS,
+  TOTAL_SCORABLE_ANSWERS,
+  calculateAnswerSheetScore,
   createInitialAnswerSheet,
+  type AnswerMark,
   type AnswerSheetState,
   type RoundNumber,
 } from "../types/answerSheet";
@@ -62,6 +65,7 @@ export function AnswerSheetScreen({
   const canUseOpenedQuiz = route.params?.quizId !== undefined || !isCurrentQuizLoading;
   const playerWidth = Math.max(width - spacing.lg * 2, 200);
   const playerHeight = Math.round(playerWidth * (9 / 16));
+  const score = calculateAnswerSheetScore(answerSheet);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -185,6 +189,22 @@ export function AnswerSheetScreen({
     }));
   }
 
+  function updateRoundAnswerMark(
+    roundNumber: RoundNumber,
+    answerIndex: number,
+    mark: AnswerMark
+  ) {
+    setAnswerSheet((currentAnswerSheet) => ({
+      ...currentAnswerSheet,
+      marks: {
+        ...currentAnswerSheet.marks,
+        [roundNumber]: currentAnswerSheet.marks[roundNumber].map(
+          (currentMark, index) => (index === answerIndex ? mark : currentMark)
+        ),
+      },
+    }));
+  }
+
   function clearAnswers() {
     if (openedQuizId === undefined) {
       return;
@@ -235,20 +255,35 @@ export function AnswerSheetScreen({
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
         >
+          <View style={styles.topNavigationSection}>
+            <AppButton
+              title="Return Home"
+              variant="secondary"
+              onPress={() => navigation.navigate("Home")}
+            />
+          </View>
+
           <View style={styles.adSection}>
             <AdBannerPlaceholder />
           </View>
 
           <Text style={styles.heading}>Answer Sheet</Text>
           <Text style={styles.quizTitle}>{openedQuizTitle}</Text>
+          <Text style={styles.scoreText}>
+            Score: {score} / {TOTAL_SCORABLE_ANSWERS}
+          </Text>
 
           {ROUND_NUMBERS.map((roundNumber) => (
             <RoundSection
               key={roundNumber}
               roundNumber={roundNumber}
               answers={answerSheet.rounds[roundNumber]}
+              marks={answerSheet.marks[roundNumber]}
               onAnswerChange={(answerIndex, value) =>
                 updateRoundAnswer(roundNumber, answerIndex, value)
+              }
+              onMarkChange={(answerIndex, mark) =>
+                updateRoundAnswerMark(roundNumber, answerIndex, mark)
               }
             />
           ))}
@@ -311,6 +346,9 @@ const styles = StyleSheet.create({
   adSection: {
     marginBottom: spacing.lg,
   },
+  topNavigationSection: {
+    marginBottom: spacing.md,
+  },
   heading: {
     fontSize: 24,
     fontWeight: "bold",
@@ -320,6 +358,12 @@ const styles = StyleSheet.create({
   quizTitle: {
     color: colors.textLight,
     fontSize: 15,
+    marginBottom: spacing.sm,
+  },
+  scoreText: {
+    color: colors.text,
+    fontSize: 18,
+    fontWeight: "700",
     marginBottom: spacing.lg,
   },
   sectionHeading: {

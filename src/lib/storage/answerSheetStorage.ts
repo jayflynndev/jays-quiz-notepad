@@ -2,6 +2,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   ANSWERS_PER_ROUND,
   ROUND_NUMBERS,
+  TOTAL_SCORABLE_ANSWERS,
+  calculateAnswerSheetScore,
+  hasMarkedAnswers,
+  type AnswerMark,
   type AnswerSheetState,
   type RoundNumber,
 } from "../../types/answerSheet";
@@ -11,6 +15,7 @@ const ANSWER_SHEET_STORAGE_KEY_PREFIX = "jays-quiz-notepad:answer-sheet:";
 
 type StoredAnswerSheet = {
   rounds: Partial<Record<string, unknown>>;
+  marks?: Partial<Record<string, unknown>>;
   tieBreaker: unknown;
 };
 
@@ -19,6 +24,9 @@ export type SavedAnswerSheetSummary = {
   quizTitle: string | null;
   youtubeVideoId: string | null;
   updatedAt: string;
+  score: number;
+  total: number;
+  hasMarkedAnswers: boolean;
 };
 
 type StoredAnswerSheetRecord = SavedAnswerSheetSummary & {
@@ -48,6 +56,18 @@ function isRoundAnswers(value: unknown): value is string[] {
   );
 }
 
+function isAnswerMark(value: unknown): value is AnswerMark {
+  return value === "unmarked" || value === "correct" || value === "incorrect";
+}
+
+function isRoundMarks(value: unknown): value is AnswerMark[] {
+  return (
+    Array.isArray(value) &&
+    value.length === ANSWERS_PER_ROUND &&
+    value.every(isAnswerMark)
+  );
+}
+
 function getRoundAnswers(
   rounds: Partial<Record<string, unknown>>,
   roundNumber: RoundNumber
@@ -55,6 +75,17 @@ function getRoundAnswers(
   const answers = rounds[String(roundNumber)];
 
   return isRoundAnswers(answers) ? answers : null;
+}
+
+function getRoundMarks(
+  marks: Partial<Record<string, unknown>> | undefined,
+  roundNumber: RoundNumber
+) {
+  const roundMarks = marks?.[String(roundNumber)];
+
+  return isRoundMarks(roundMarks)
+    ? roundMarks
+    : Array.from({ length: ANSWERS_PER_ROUND }, () => "unmarked" as const);
 }
 
 function parseAnswerSheet(value: string): AnswerSheetState | null {
@@ -84,6 +115,13 @@ function parseAnswerSheet(value: string): AnswerSheetState | null {
       },
       {} as AnswerSheetState["rounds"]
     );
+    const marks = ROUND_NUMBERS.reduce<AnswerSheetState["marks"]>(
+      (currentMarks, roundNumber) => ({
+        ...currentMarks,
+        [roundNumber]: getRoundMarks(parsed.marks, roundNumber),
+      }),
+      {} as AnswerSheetState["marks"]
+    );
 
     if (rounds === null || typeof parsed.tieBreaker !== "string") {
       return null;
@@ -91,6 +129,7 @@ function parseAnswerSheet(value: string): AnswerSheetState | null {
 
     return {
       rounds,
+      marks,
       tieBreaker: parsed.tieBreaker,
     };
   } catch {
@@ -127,6 +166,15 @@ function parseSavedAnswerSheetSummary(
         ? candidate.youtubeVideoId
         : null,
     updatedAt: candidate.updatedAt,
+    score: typeof candidate.score === "number" ? candidate.score : 0,
+    total:
+      typeof candidate.total === "number"
+        ? candidate.total
+        : TOTAL_SCORABLE_ANSWERS,
+    hasMarkedAnswers:
+      typeof candidate.hasMarkedAnswers === "boolean"
+        ? candidate.hasMarkedAnswers
+        : false,
   };
 }
 
@@ -181,6 +229,18 @@ function parseSavedAnswerSheetRecord(
       quizTitle: candidate.quizTitle,
       youtubeVideoId: candidate.youtubeVideoId,
       updatedAt: candidate.updatedAt,
+      score:
+        typeof candidate.score === "number"
+          ? candidate.score
+          : calculateAnswerSheetScore(answerSheet),
+      total:
+        typeof candidate.total === "number"
+          ? candidate.total
+          : TOTAL_SCORABLE_ANSWERS,
+      hasMarkedAnswers:
+        typeof candidate.hasMarkedAnswers === "boolean"
+          ? candidate.hasMarkedAnswers
+          : hasMarkedAnswers(answerSheet),
       answerSheet,
     };
   } catch {
@@ -239,11 +299,16 @@ export async function saveAnswerSheetForQuiz({
   answerSheet: AnswerSheetState;
 }) {
   const updatedAt = new Date().toISOString();
+  const score = calculateAnswerSheetScore(answerSheet);
+  const sheetHasMarkedAnswers = hasMarkedAnswers(answerSheet);
   const record: StoredAnswerSheetRecord = {
     quizId,
     quizTitle,
     youtubeVideoId,
     updatedAt,
+    score,
+    total: TOTAL_SCORABLE_ANSWERS,
+    hasMarkedAnswers: sheetHasMarkedAnswers,
     answerSheet,
   };
   const index = await loadSavedAnswerSheetIndex();
@@ -253,6 +318,9 @@ export async function saveAnswerSheetForQuiz({
       quizTitle,
       youtubeVideoId,
       updatedAt,
+      score,
+      total: TOTAL_SCORABLE_ANSWERS,
+      hasMarkedAnswers: sheetHasMarkedAnswers,
     },
     ...index.filter((sheet) => sheet.quizId !== quizId),
   ];

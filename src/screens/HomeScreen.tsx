@@ -118,6 +118,11 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
                   <Text style={styles.savedSheetDate}>
                     Saved {formatSavedAt(sheet.updatedAt)}
                   </Text>
+                  <Text style={styles.savedSheetScore}>
+                    {sheet.hasMarkedAnswers
+                      ? `${sheet.score} / ${sheet.total}`
+                      : "Not marked yet"}
+                  </Text>
                 </View>
                 <View style={styles.openButtonWrapper}>
                   <AppButton
@@ -211,6 +216,12 @@ const styles = StyleSheet.create({
   savedSheetDate: {
     color: colors.textLight,
     fontSize: 13,
+    marginBottom: spacing.xs,
+  },
+  savedSheetScore: {
+    color: colors.text,
+    fontSize: 13,
+    fontWeight: "700",
   },
   openButtonWrapper: {
     minWidth: 96,

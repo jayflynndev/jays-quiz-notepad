@@ -3,18 +3,22 @@ import { StyleSheet, Text, View } from "react-native";
 import { AnswerInput } from "./AnswerInput";
 import { colors } from "../theme/colors";
 import { spacing } from "../theme/spacing";
-import type { RoundNumber } from "../types/answerSheet";
+import type { AnswerMark, RoundNumber } from "../types/answerSheet";
 
 interface RoundSectionProps {
   roundNumber: RoundNumber;
   answers: string[];
+  marks: AnswerMark[];
   onAnswerChange: (answerIndex: number, value: string) => void;
+  onMarkChange: (answerIndex: number, mark: AnswerMark) => void;
 }
 
 export function RoundSection({
   roundNumber,
   answers,
+  marks,
   onAnswerChange,
+  onMarkChange,
 }: RoundSectionProps) {
   return (
     <View style={styles.container}>
@@ -25,6 +29,8 @@ export function RoundSection({
           label={`${index + 1}.`}
           value={answer}
           onChangeText={(value) => onAnswerChange(index, value)}
+          mark={marks[index]}
+          onMarkChange={(mark) => onMarkChange(index, mark)}
           placeholder={`Answer ${index + 1}`}
         />
       ))}
