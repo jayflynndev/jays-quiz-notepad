@@ -22,9 +22,9 @@ import { AppButton } from "../components/AppButton";
 import { RoundSection } from "../components/RoundSection";
 import { useCurrentQuiz } from "../hooks/useCurrentQuiz";
 import {
-  clearSavedAnswerSheet,
-  loadAnswerSheet,
-  saveAnswerSheet,
+  clearSavedAnswerSheetForQuiz,
+  loadAnswerSheetForQuiz,
+  saveAnswerSheetForQuiz,
 } from "../lib/storage/answerSheetStorage";
 import { loadSettings } from "../lib/storage/settingsStorage";
 import { colors } from "../theme/colors";
@@ -39,9 +39,12 @@ import {
 
 const KEEP_AWAKE_TAG = "answer-sheet-screen";
 
-export function AnswerSheetScreen({ navigation }: AnswerSheetScreenProps) {
+export function AnswerSheetScreen({
+  navigation,
+  route,
+}: AnswerSheetScreenProps) {
   const { width } = useWindowDimensions();
-  const { currentQuiz } = useCurrentQuiz();
+  const { currentQuiz, isLoading: isCurrentQuizLoading } = useCurrentQuiz();
   const hasLoadedSavedAnswers = useRef(false);
   const shouldSkipNextSave = useRef(false);
   const [answerSheet, setAnswerSheet] = useState<AnswerSheetState>(
@@ -49,6 +52,14 @@ export function AnswerSheetScreen({ navigation }: AnswerSheetScreenProps) {
   );
   const [keepScreenAwakeDuringQuiz, setKeepScreenAwakeDuringQuiz] =
     useState(false);
+  const openedQuizId = route.params?.quizId ?? currentQuiz.id;
+  const openedQuizTitle =
+    route.params?.quizId === undefined
+      ? currentQuiz.title
+      : route.params.quizTitle ?? "Saved answer sheet";
+  const openedQuizVideoId =
+    route.params?.youtubeVideoId ?? currentQuiz.youtubeVideoId;
+  const canUseOpenedQuiz = route.params?.quizId !== undefined || !isCurrentQuizLoading;
   const playerWidth = Math.max(width - spacing.lg * 2, 200);
   const playerHeight = Math.round(playerWidth * (9 / 16));
 
@@ -95,7 +106,15 @@ export function AnswerSheetScreen({ navigation }: AnswerSheetScreenProps) {
     let isMounted = true;
 
     async function restoreSavedAnswers() {
-      const savedAnswerSheet = await loadAnswerSheet();
+      if (openedQuizId === undefined || !canUseOpenedQuiz) {
+        return;
+      }
+
+      hasLoadedSavedAnswers.current = false;
+      shouldSkipNextSave.current = false;
+      setAnswerSheet(createInitialAnswerSheet());
+
+      const savedAnswerSheet = await loadAnswerSheetForQuiz(openedQuizId);
 
       if (!isMounted) {
         return;
@@ -113,10 +132,14 @@ export function AnswerSheetScreen({ navigation }: AnswerSheetScreenProps) {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [canUseOpenedQuiz, openedQuizId]);
 
   useEffect(() => {
-    if (!hasLoadedSavedAnswers.current) {
+    if (
+      openedQuizId === undefined ||
+      !canUseOpenedQuiz ||
+      !hasLoadedSavedAnswers.current
+    ) {
       return;
     }
 
@@ -125,8 +148,19 @@ export function AnswerSheetScreen({ navigation }: AnswerSheetScreenProps) {
       return;
     }
 
-    void saveAnswerSheet(answerSheet);
-  }, [answerSheet]);
+    void saveAnswerSheetForQuiz({
+      quizId: openedQuizId,
+      quizTitle: openedQuizTitle,
+      youtubeVideoId: openedQuizVideoId,
+      answerSheet,
+    });
+  }, [
+    answerSheet,
+    canUseOpenedQuiz,
+    openedQuizId,
+    openedQuizTitle,
+    openedQuizVideoId,
+  ]);
 
   function updateRoundAnswer(
     roundNumber: RoundNumber,
@@ -152,9 +186,13 @@ export function AnswerSheetScreen({ navigation }: AnswerSheetScreenProps) {
   }
 
   function clearAnswers() {
+    if (openedQuizId === undefined) {
+      return;
+    }
+
     shouldSkipNextSave.current = true;
     setAnswerSheet(createInitialAnswerSheet());
-    void clearSavedAnswerSheet();
+    void clearSavedAnswerSheetForQuiz(openedQuizId);
   }
 
   function handleClearAnswersPress() {
@@ -186,7 +224,7 @@ export function AnswerSheetScreen({ navigation }: AnswerSheetScreenProps) {
             <YoutubeIframe
               height={playerHeight}
               width={playerWidth}
-              videoId={currentQuiz.youtubeVideoId}
+              videoId={openedQuizVideoId}
               play={false}
             />
           </View>
@@ -202,6 +240,7 @@ export function AnswerSheetScreen({ navigation }: AnswerSheetScreenProps) {
           </View>
 
           <Text style={styles.heading}>Answer Sheet</Text>
+          <Text style={styles.quizTitle}>{openedQuizTitle}</Text>
 
           {ROUND_NUMBERS.map((roundNumber) => (
             <RoundSection
@@ -276,6 +315,11 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     color: colors.text,
+    marginBottom: spacing.xs,
+  },
+  quizTitle: {
+    color: colors.textLight,
+    fontSize: 15,
     marginBottom: spacing.lg,
   },
   sectionHeading: {

@@ -1,10 +1,15 @@
-import React from "react";
+import React, { useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import { View, StyleSheet, Text, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AdBannerPlaceholder } from "../components/AdBannerPlaceholder";
 import { AppButton } from "../components/AppButton";
 import { QuizCard } from "../components/QuizCard";
 import { useCurrentQuiz } from "../hooks/useCurrentQuiz";
+import {
+  listSavedAnswerSheets,
+  type SavedAnswerSheetSummary,
+} from "../lib/storage/answerSheetStorage";
 import { colors } from "../theme/colors";
 import { spacing } from "../theme/spacing";
 import type { HomeScreenProps } from "../navigation/types";
@@ -33,9 +38,45 @@ function getQuizFallbackMessage(errorMessage: string | null) {
   return "Unable to load Firestore quiz. Showing local fallback.";
 }
 
+function formatSavedAt(updatedAt: string) {
+  const date = new Date(updatedAt);
+
+  if (Number.isNaN(date.getTime())) {
+    return updatedAt;
+  }
+
+  return new Intl.DateTimeFormat(undefined, {
+    day: "numeric",
+    month: "short",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
+}
+
 export function HomeScreen({ navigation }: HomeScreenProps) {
   const { currentQuiz, isLoading, errorMessage } = useCurrentQuiz();
+  const [savedSheets, setSavedSheets] = useState<SavedAnswerSheetSummary[]>([]);
   const fallbackMessage = getQuizFallbackMessage(errorMessage);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      let isActive = true;
+
+      async function loadSavedSheets() {
+        const sheets = await listSavedAnswerSheets();
+
+        if (isActive) {
+          setSavedSheets(sheets);
+        }
+      }
+
+      void loadSavedSheets();
+
+      return () => {
+        isActive = false;
+      };
+    }, [])
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -64,6 +105,37 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
             onPress={() => navigation.navigate("Settings")}
           />
         </View>
+
+        {savedSheets.length > 0 ? (
+          <View style={styles.previousSheetsSection}>
+            <Text style={styles.sectionHeading}>Previous Sheets</Text>
+            {savedSheets.map((sheet) => (
+              <View key={sheet.quizId} style={styles.savedSheetRow}>
+                <View style={styles.savedSheetText}>
+                  <Text style={styles.savedSheetTitle}>
+                    {sheet.quizTitle ?? "Saved answer sheet"}
+                  </Text>
+                  <Text style={styles.savedSheetDate}>
+                    Saved {formatSavedAt(sheet.updatedAt)}
+                  </Text>
+                </View>
+                <View style={styles.openButtonWrapper}>
+                  <AppButton
+                    title="Open"
+                    variant="secondary"
+                    onPress={() =>
+                      navigation.navigate("AnswerSheet", {
+                        quizId: sheet.quizId,
+                        quizTitle: sheet.quizTitle,
+                        youtubeVideoId: sheet.youtubeVideoId,
+                      })
+                    }
+                  />
+                </View>
+              </View>
+            ))}
+          </View>
+        ) : null}
 
         <View style={styles.adSection}>
           <AdBannerPlaceholder />
@@ -106,6 +178,42 @@ const styles = StyleSheet.create({
   },
   buttonSection: {
     marginTop: spacing.xl,
+  },
+  previousSheetsSection: {
+    marginTop: spacing.xl,
+  },
+  sectionHeading: {
+    color: colors.text,
+    fontSize: 20,
+    fontWeight: "700",
+    marginBottom: spacing.md,
+  },
+  savedSheetRow: {
+    alignItems: "center",
+    borderColor: colors.border,
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: "row",
+    marginBottom: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  savedSheetText: {
+    flex: 1,
+    marginRight: spacing.md,
+  },
+  savedSheetTitle: {
+    color: colors.text,
+    fontSize: 15,
+    fontWeight: "700",
+    marginBottom: spacing.xs,
+  },
+  savedSheetDate: {
+    color: colors.textLight,
+    fontSize: 13,
+  },
+  openButtonWrapper: {
+    minWidth: 96,
   },
   adSection: {
     marginTop: spacing.lg,
