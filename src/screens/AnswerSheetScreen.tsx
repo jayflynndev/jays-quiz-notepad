@@ -1,36 +1,125 @@
-import React from "react";
-import { View, StyleSheet, Text, ScrollView } from "react-native";
+import React, { useState } from "react";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  View,
+  StyleSheet,
+  Text,
+  ScrollView,
+} from "react-native";
+import { AnswerInput } from "../components/AnswerInput";
 import { AppButton } from "../components/AppButton";
+import { RoundSection } from "../components/RoundSection";
 import { colors } from "../theme/colors";
 import { spacing } from "../theme/spacing";
 import type { AnswerSheetScreenProps } from "../navigation/types";
+import {
+  ANSWERS_PER_ROUND,
+  ROUND_NUMBERS,
+  type AnswerSheetState,
+  type RoundNumber,
+} from "../types/answerSheet";
+
+function createInitialAnswerSheet(): AnswerSheetState {
+  return {
+    rounds: {
+      1: Array.from({ length: ANSWERS_PER_ROUND }, () => ""),
+      2: Array.from({ length: ANSWERS_PER_ROUND }, () => ""),
+      3: Array.from({ length: ANSWERS_PER_ROUND }, () => ""),
+      4: Array.from({ length: ANSWERS_PER_ROUND }, () => ""),
+      5: Array.from({ length: ANSWERS_PER_ROUND }, () => ""),
+    },
+    tieBreaker: "",
+  };
+}
 
 export function AnswerSheetScreen({ navigation }: AnswerSheetScreenProps) {
+  const [answerSheet, setAnswerSheet] = useState<AnswerSheetState>(
+    createInitialAnswerSheet
+  );
+
+  function updateRoundAnswer(
+    roundNumber: RoundNumber,
+    answerIndex: number,
+    value: string
+  ) {
+    setAnswerSheet((currentAnswerSheet) => ({
+      ...currentAnswerSheet,
+      rounds: {
+        ...currentAnswerSheet.rounds,
+        [roundNumber]: currentAnswerSheet.rounds[roundNumber].map(
+          (answer, index) => (index === answerIndex ? value : answer)
+        ),
+      },
+    }));
+  }
+
+  function updateTieBreaker(value: string) {
+    setAnswerSheet((currentAnswerSheet) => ({
+      ...currentAnswerSheet,
+      tieBreaker: value,
+    }));
+  }
+
+  function handleClearAnswersPress() {
+    return undefined;
+  }
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* YouTube Player Placeholder */}
-      <View style={styles.youtubeContainer}>
-        <Text style={styles.placeholderText}>YouTube player will go here</Text>
-      </View>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.youtubeContainer}>
+          <Text style={styles.placeholderText}>YouTube player will go here</Text>
+        </View>
 
-      {/* Ad Banner Placeholder */}
-      <View style={styles.adContainer}>
-        <Text style={styles.placeholderText}>Ad banner will go here</Text>
-      </View>
+        <View style={styles.adContainer}>
+          <Text style={styles.placeholderText}>Ad banner will go here</Text>
+        </View>
 
-      {/* Answer Sheet Section */}
-      <Text style={styles.heading}>Answer Sheet</Text>
-      <Text style={styles.tempText}>Answer boxes coming next</Text>
+        <Text style={styles.heading}>Answer Sheet</Text>
 
-      {/* Navigation Button */}
-      <View style={styles.buttonSection}>
-        <AppButton
-          title="Back Home"
-          variant="secondary"
-          onPress={() => navigation.navigate("Home")}
-        />
-      </View>
-    </ScrollView>
+        {ROUND_NUMBERS.map((roundNumber) => (
+          <RoundSection
+            key={roundNumber}
+            roundNumber={roundNumber}
+            answers={answerSheet.rounds[roundNumber]}
+            onAnswerChange={(answerIndex, value) =>
+              updateRoundAnswer(roundNumber, answerIndex, value)
+            }
+          />
+        ))}
+
+        <View style={styles.tieBreakerSection}>
+          <Text style={styles.sectionHeading}>Tie-breaker</Text>
+          <AnswerInput
+            label="Tie-breaker answer"
+            value={answerSheet.tieBreaker}
+            onChangeText={updateTieBreaker}
+            placeholder="Your tie-breaker answer"
+          />
+        </View>
+
+        <View style={styles.buttonSection}>
+          <AppButton
+            title="Clear Answers"
+            variant="secondary"
+            onPress={handleClearAnswersPress}
+          />
+          <AppButton
+            title="Back Home"
+            variant="secondary"
+            onPress={() => navigation.navigate("Home")}
+          />
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -39,9 +128,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  scrollView: {
+    flex: 1,
+  },
   content: {
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: 160,
   },
   youtubeContainer: {
     backgroundColor: colors.lightGray,
@@ -72,15 +165,18 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     color: colors.text,
+    marginBottom: spacing.lg,
+  },
+  sectionHeading: {
+    color: colors.text,
+    fontSize: 20,
+    fontWeight: "bold",
     marginBottom: spacing.md,
   },
-  tempText: {
-    fontSize: 14,
-    color: colors.textLight,
+  tieBreakerSection: {
     marginBottom: spacing.xl,
   },
   buttonSection: {
-    marginTop: spacing.xl,
     marginBottom: spacing.lg,
   },
 });
