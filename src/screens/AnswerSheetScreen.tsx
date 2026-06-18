@@ -13,6 +13,7 @@ import YoutubeIframe from "react-native-youtube-iframe";
 import { AnswerInput } from "../components/AnswerInput";
 import { AppButton } from "../components/AppButton";
 import { RoundSection } from "../components/RoundSection";
+import { currentQuiz } from "../config/currentQuiz";
 import {
   clearSavedAnswerSheet,
   loadAnswerSheet,
@@ -27,8 +28,6 @@ import {
   type AnswerSheetState,
   type RoundNumber,
 } from "../types/answerSheet";
-
-const TEST_YOUTUBE_VIDEO_ID = "dQw4w9WgXcQ";
 
 export function AnswerSheetScreen({ navigation }: AnswerSheetScreenProps) {
   const { width } = useWindowDimensions();
@@ -134,7 +133,7 @@ export function AnswerSheetScreen({ navigation }: AnswerSheetScreenProps) {
           <YoutubeIframe
             height={playerHeight}
             width={playerWidth}
-            videoId={TEST_YOUTUBE_VIDEO_ID}
+            videoId={currentQuiz.youtubeVideoId}
             play={false}
           />
         </View>

@@ -1,9 +1,14 @@
 import React from "react";
 import { View, StyleSheet, Text, ScrollView } from "react-native";
 import { AppButton } from "../components/AppButton";
+import { currentQuiz, type QuizStatus } from "../config/currentQuiz";
 import { colors } from "../theme/colors";
 import { spacing } from "../theme/spacing";
 import type { HomeScreenProps } from "../navigation/types";
+
+function formatQuizStatus(status: QuizStatus) {
+  return status.charAt(0).toUpperCase() + status.slice(1);
+}
 
 export function HomeScreen({ navigation }: HomeScreenProps) {
   return (
@@ -13,6 +18,14 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
         <Text style={styles.subtitle}>
           Watch the quiz and write your answers in one place.
         </Text>
+      </View>
+
+      <View style={styles.quizSection}>
+        <Text style={styles.quizTitle}>{currentQuiz.title}</Text>
+        <Text style={styles.quizDetail}>
+          Status: {formatQuizStatus(currentQuiz.status)}
+        </Text>
+        <Text style={styles.quizDetail}>Start time: {currentQuiz.startTime}</Text>
       </View>
 
       <View style={styles.buttonSection}>
@@ -57,6 +70,26 @@ const styles = StyleSheet.create({
     color: colors.textLight,
     textAlign: "center",
     lineHeight: 24,
+  },
+  quizSection: {
+    borderColor: colors.border,
+    borderRadius: 8,
+    borderWidth: 1,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+  },
+  quizTitle: {
+    color: colors.text,
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: spacing.sm,
+    textAlign: "center",
+  },
+  quizDetail: {
+    color: colors.textLight,
+    fontSize: 14,
+    lineHeight: 22,
+    textAlign: "center",
   },
   buttonSection: {
     marginTop: spacing.xl,
