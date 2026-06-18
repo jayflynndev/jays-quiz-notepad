@@ -2,15 +2,11 @@ import React from "react";
 import { View, StyleSheet, Text, ScrollView } from "react-native";
 import { AdBannerPlaceholder } from "../components/AdBannerPlaceholder";
 import { AppButton } from "../components/AppButton";
-import type { QuizStatus } from "../config/currentQuiz";
+import { QuizCard } from "../components/QuizCard";
 import { useCurrentQuiz } from "../hooks/useCurrentQuiz";
 import { colors } from "../theme/colors";
 import { spacing } from "../theme/spacing";
 import type { HomeScreenProps } from "../navigation/types";
-
-function formatQuizStatus(status: QuizStatus) {
-  return status.charAt(0).toUpperCase() + status.slice(1);
-}
 
 function getQuizFallbackMessage(errorMessage: string | null) {
   if (errorMessage === null) {
@@ -49,23 +45,14 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
         </Text>
       </View>
 
-      <View style={styles.quizSection}>
-        {isLoading ? <Text style={styles.quizMeta}>Loading quiz...</Text> : null}
-        <Text style={styles.quizTitle}>{currentQuiz.title}</Text>
-        <Text style={styles.quizDetail}>
-          Status: {formatQuizStatus(currentQuiz.status)}
-        </Text>
-        <Text style={styles.quizDetail}>Start time: {currentQuiz.startTime}</Text>
-        {fallbackMessage !== null ? (
-          <Text style={styles.errorText}>{fallbackMessage}</Text>
-        ) : null}
-      </View>
+      <QuizCard
+        quiz={currentQuiz}
+        isLoading={isLoading}
+        fallbackMessage={fallbackMessage}
+        onPressAnswerSheet={() => navigation.navigate("AnswerSheet")}
+      />
 
       <View style={styles.buttonSection}>
-        <AppButton
-          title="Watch & Write Answers"
-          onPress={() => navigation.navigate("AnswerSheet")}
-        />
         <AppButton
           title="Settings"
           variant="secondary"
@@ -107,40 +94,6 @@ const styles = StyleSheet.create({
     color: colors.textLight,
     textAlign: "center",
     lineHeight: 24,
-  },
-  quizSection: {
-    borderColor: colors.border,
-    borderRadius: 8,
-    borderWidth: 1,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-  },
-  quizTitle: {
-    color: colors.text,
-    fontSize: 18,
-    fontWeight: "700",
-    marginBottom: spacing.sm,
-    textAlign: "center",
-  },
-  quizMeta: {
-    color: colors.textLight,
-    fontSize: 13,
-    fontWeight: "600",
-    marginBottom: spacing.sm,
-    textAlign: "center",
-  },
-  quizDetail: {
-    color: colors.textLight,
-    fontSize: 14,
-    lineHeight: 22,
-    textAlign: "center",
-  },
-  errorText: {
-    color: colors.textLight,
-    fontSize: 13,
-    lineHeight: 20,
-    marginTop: spacing.sm,
-    textAlign: "center",
   },
   buttonSection: {
     marginTop: spacing.xl,
