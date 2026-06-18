@@ -8,3 +8,16 @@ export type AnswerSheetState = {
   rounds: Record<RoundNumber, string[]>;
   tieBreaker: string;
 };
+
+export function createInitialAnswerSheet(): AnswerSheetState {
+  return {
+    rounds: {
+      1: Array.from({ length: ANSWERS_PER_ROUND }, () => ""),
+      2: Array.from({ length: ANSWERS_PER_ROUND }, () => ""),
+      3: Array.from({ length: ANSWERS_PER_ROUND }, () => ""),
+      4: Array.from({ length: ANSWERS_PER_ROUND }, () => ""),
+      5: Array.from({ length: ANSWERS_PER_ROUND }, () => ""),
+    },
+    tieBreaker: "",
+  };
+}

@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   View,
@@ -10,33 +11,64 @@ import {
 import { AnswerInput } from "../components/AnswerInput";
 import { AppButton } from "../components/AppButton";
 import { RoundSection } from "../components/RoundSection";
+import {
+  clearSavedAnswerSheet,
+  loadAnswerSheet,
+  saveAnswerSheet,
+} from "../lib/storage/answerSheetStorage";
 import { colors } from "../theme/colors";
 import { spacing } from "../theme/spacing";
 import type { AnswerSheetScreenProps } from "../navigation/types";
 import {
-  ANSWERS_PER_ROUND,
   ROUND_NUMBERS,
+  createInitialAnswerSheet,
   type AnswerSheetState,
   type RoundNumber,
 } from "../types/answerSheet";
 
-function createInitialAnswerSheet(): AnswerSheetState {
-  return {
-    rounds: {
-      1: Array.from({ length: ANSWERS_PER_ROUND }, () => ""),
-      2: Array.from({ length: ANSWERS_PER_ROUND }, () => ""),
-      3: Array.from({ length: ANSWERS_PER_ROUND }, () => ""),
-      4: Array.from({ length: ANSWERS_PER_ROUND }, () => ""),
-      5: Array.from({ length: ANSWERS_PER_ROUND }, () => ""),
-    },
-    tieBreaker: "",
-  };
-}
-
 export function AnswerSheetScreen({ navigation }: AnswerSheetScreenProps) {
+  const hasLoadedSavedAnswers = useRef(false);
+  const shouldSkipNextSave = useRef(false);
   const [answerSheet, setAnswerSheet] = useState<AnswerSheetState>(
     createInitialAnswerSheet
   );
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function restoreSavedAnswers() {
+      const savedAnswerSheet = await loadAnswerSheet();
+
+      if (!isMounted) {
+        return;
+      }
+
+      if (savedAnswerSheet !== null) {
+        setAnswerSheet(savedAnswerSheet);
+      }
+
+      hasLoadedSavedAnswers.current = true;
+    }
+
+    void restoreSavedAnswers();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!hasLoadedSavedAnswers.current) {
+      return;
+    }
+
+    if (shouldSkipNextSave.current) {
+      shouldSkipNextSave.current = false;
+      return;
+    }
+
+    void saveAnswerSheet(answerSheet);
+  }, [answerSheet]);
 
   function updateRoundAnswer(
     roundNumber: RoundNumber,
@@ -61,8 +93,28 @@ export function AnswerSheetScreen({ navigation }: AnswerSheetScreenProps) {
     }));
   }
 
+  function clearAnswers() {
+    shouldSkipNextSave.current = true;
+    setAnswerSheet(createInitialAnswerSheet());
+    void clearSavedAnswerSheet();
+  }
+
   function handleClearAnswersPress() {
-    return undefined;
+    Alert.alert(
+      "Clear answers?",
+      "This will remove all saved answers from this device.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Clear Answers",
+          style: "destructive",
+          onPress: clearAnswers,
+        },
+      ]
+    );
   }
 
   return (
