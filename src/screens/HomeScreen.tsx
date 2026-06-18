@@ -1,5 +1,6 @@
 import React from "react";
 import { View, StyleSheet, Text, ScrollView } from "react-native";
+import { AdBannerPlaceholder } from "../components/AdBannerPlaceholder";
 import { AppButton } from "../components/AppButton";
 import { currentQuiz, type QuizStatus } from "../config/currentQuiz";
 import { colors } from "../theme/colors";
@@ -38,6 +39,10 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
           variant="secondary"
           onPress={() => navigation.navigate("Settings")}
         />
+      </View>
+
+      <View style={styles.adSection}>
+        <AdBannerPlaceholder />
       </View>
     </ScrollView>
   );
@@ -93,5 +98,8 @@ const styles = StyleSheet.create({
   },
   buttonSection: {
     marginTop: spacing.xl,
+  },
+  adSection: {
+    marginTop: spacing.lg,
   },
 });

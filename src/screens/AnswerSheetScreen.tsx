@@ -15,6 +15,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 import YoutubeIframe from "react-native-youtube-iframe";
+import { AdBannerPlaceholder } from "../components/AdBannerPlaceholder";
 import { AnswerInput } from "../components/AnswerInput";
 import { AppButton } from "../components/AppButton";
 import { RoundSection } from "../components/RoundSection";
@@ -193,8 +194,8 @@ export function AnswerSheetScreen({ navigation }: AnswerSheetScreenProps) {
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.adContainer}>
-          <Text style={styles.placeholderText}>Ad banner will go here</Text>
+        <View style={styles.adSection}>
+          <AdBannerPlaceholder />
         </View>
 
         <Text style={styles.heading}>Answer Sheet</Text>
@@ -261,20 +262,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     overflow: "hidden",
   },
-  adContainer: {
-    backgroundColor: colors.lightGray,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.border,
-    height: 60,
-    justifyContent: "center",
-    alignItems: "center",
+  adSection: {
     marginBottom: spacing.lg,
-  },
-  placeholderText: {
-    color: colors.textLight,
-    fontSize: 14,
-    fontStyle: "italic",
   },
   heading: {
     fontSize: 24,
