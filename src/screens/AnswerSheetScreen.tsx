@@ -7,7 +7,9 @@ import {
   StyleSheet,
   Text,
   ScrollView,
+  useWindowDimensions,
 } from "react-native";
+import YoutubeIframe from "react-native-youtube-iframe";
 import { AnswerInput } from "../components/AnswerInput";
 import { AppButton } from "../components/AppButton";
 import { RoundSection } from "../components/RoundSection";
@@ -26,12 +28,17 @@ import {
   type RoundNumber,
 } from "../types/answerSheet";
 
+const TEST_YOUTUBE_VIDEO_ID = "dQw4w9WgXcQ";
+
 export function AnswerSheetScreen({ navigation }: AnswerSheetScreenProps) {
+  const { width } = useWindowDimensions();
   const hasLoadedSavedAnswers = useRef(false);
   const shouldSkipNextSave = useRef(false);
   const [answerSheet, setAnswerSheet] = useState<AnswerSheetState>(
     createInitialAnswerSheet
   );
+  const playerWidth = Math.max(width - spacing.lg * 2, 200);
+  const playerHeight = Math.round(playerWidth * (9 / 16));
 
   useEffect(() => {
     let isMounted = true;
@@ -122,15 +129,22 @@ export function AnswerSheetScreen({ navigation }: AnswerSheetScreenProps) {
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
+      <View style={styles.stickyPlayerSection}>
+        <View style={styles.youtubeContainer}>
+          <YoutubeIframe
+            height={playerHeight}
+            width={playerWidth}
+            videoId={TEST_YOUTUBE_VIDEO_ID}
+            play={false}
+          />
+        </View>
+      </View>
+
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.youtubeContainer}>
-          <Text style={styles.placeholderText}>YouTube player will go here</Text>
-        </View>
-
         <View style={styles.adContainer}>
           <Text style={styles.placeholderText}>Ad banner will go here</Text>
         </View>
@@ -185,18 +199,19 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
+    paddingTop: spacing.md,
     paddingBottom: 160,
   },
+  stickyPlayerSection: {
+    backgroundColor: colors.background,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.md,
+  },
   youtubeContainer: {
-    backgroundColor: colors.lightGray,
+    backgroundColor: colors.text,
     borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.border,
-    height: 200,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: spacing.lg,
+    overflow: "hidden",
   },
   adContainer: {
     backgroundColor: colors.lightGray,
