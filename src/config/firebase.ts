@@ -2,12 +2,22 @@ import { getApps, initializeApp, type FirebaseApp } from "firebase/app";
 import { initializeFirestore, type Firestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyByxkZc7OeqctufRlKEDwcTCzi4WeoBgV0",
-  authDomain: "jaysquiz-a03a2.firebaseapp.com",
-  projectId: "jaysquiz-a03a2",
-  storageBucket: "jaysquiz-a03a2.firebasestorage.app",
-  messagingSenderId: "917643667574",
-  appId: "1:917643667574:web:fbb5d4679edc50ac359757",
+  apiKey:
+    process.env.EXPO_PUBLIC_FIREBASE_API_KEY ??
+    "AIzaSyByxkZc7OeqctufRlKEDwcTCzi4WeoBgV0",
+  authDomain:
+    process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN ??
+    "jaysquiz-a03a2.firebaseapp.com",
+  projectId:
+    process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID ?? "jaysquiz-a03a2",
+  storageBucket:
+    process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET ??
+    "jaysquiz-a03a2.firebasestorage.app",
+  messagingSenderId:
+    process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ?? "917643667574",
+  appId:
+    process.env.EXPO_PUBLIC_FIREBASE_APP_ID ??
+    "1:917643667574:web:fbb5d4679edc50ac359757",
 };
 
 function hasFirebaseConfig() {

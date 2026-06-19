@@ -33,6 +33,7 @@ const iosAdMobAppId = getAdMobAppId(
 const brandingIcon = "./assets/branding/icon.png";
 const splashIcon = "./assets/branding/splash-icon.png";
 const brandPurple = "#5B218E";
+const appIdentifier = "uk.co.quizhub.jaysquiz";
 
 const config: ExpoConfig = {
   name: appInfo.appName,
@@ -66,10 +67,13 @@ const config: ExpoConfig = {
     backgroundColor: brandPurple,
   },
   ios: {
+    bundleIdentifier: appIdentifier,
+    buildNumber: appInfo.iosBuildNumber,
     supportsTablet: true,
   },
   android: {
-    package: "com.jaysquiznotepad.app",
+    package: appIdentifier,
+    versionCode: appInfo.androidVersionCode,
     adaptiveIcon: {
       foregroundImage: brandingIcon,
       backgroundColor: brandPurple,
