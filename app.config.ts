@@ -9,6 +9,15 @@ function getAdMobAppId(environmentVariable: string, fallback: string) {
   const value = process.env[environmentVariable]?.trim();
 
   if (!value) {
+    if (process.env.EAS_BUILD_PROFILE === "production") {
+      throw new Error(
+        `${environmentVariable} is required for production builds. Configure it in the EAS production environment.`,
+      );
+    }
+
+    console.warn(
+      `[AdMob] ${environmentVariable} is not set; using Google's sample App ID.`,
+    );
     return fallback;
   }
 
