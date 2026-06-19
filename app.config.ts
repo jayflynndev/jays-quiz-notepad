@@ -1,8 +1,7 @@
 import type { ExpoConfig } from "expo/config";
 import appInfo from "./src/config/appInfo.json";
 
-const GOOGLE_SAMPLE_ANDROID_APP_ID =
-  "ca-app-pub-3940256099942544~3347511713";
+const GOOGLE_SAMPLE_ANDROID_APP_ID = "ca-app-pub-3940256099942544~3347511713";
 const GOOGLE_SAMPLE_IOS_APP_ID = "ca-app-pub-3940256099942544~1458002511";
 
 function getAdMobAppId(environmentVariable: string, fallback: string) {
@@ -92,6 +91,12 @@ const config: ExpoConfig = {
   },
   web: {
     favicon: brandingIcon,
+  },
+
+  extra: {
+    eas: {
+      projectId: "cb3dadc1-47e2-4748-b740-54471038615c",
+    },
   },
 };
 
