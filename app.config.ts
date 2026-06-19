@@ -78,6 +78,9 @@ const config: ExpoConfig = {
     bundleIdentifier: appIdentifier,
     buildNumber: appInfo.iosBuildNumber,
     supportsTablet: true,
+    infoPlist: {
+      ITSAppUsesNonExemptEncryption: false,
+    },
   },
   android: {
     package: appIdentifier,
