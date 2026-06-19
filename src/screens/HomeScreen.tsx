@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AdBanner } from "../components/AdBanner";
 import { AppButton } from "../components/AppButton";
@@ -17,6 +17,7 @@ import { colors } from "../theme/colors";
 import { spacing } from "../theme/spacing";
 import {
   calculateAnswerSheetScore,
+  hasAnswerSheetProgress,
   isAnswerSheetCompleted,
   TOTAL_SCORABLE_ANSWERS,
 } from "../types/answerSheet";
@@ -62,13 +63,15 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
           savedSheets.map(async (savedSheet) => {
             const answerSheet = await loadAnswerSheetForQuiz(savedSheet.quizId);
             const state: QuizAnswerSheetState =
-              answerSheet !== null && isAnswerSheetCompleted(answerSheet)
-                ? {
-                    status: "completed",
-                    score: calculateAnswerSheetScore(answerSheet),
-                    total: TOTAL_SCORABLE_ANSWERS,
-                  }
-                : { status: "in-progress" };
+              answerSheet === null || !hasAnswerSheetProgress(answerSheet)
+                ? NOT_PLAYED
+                : isAnswerSheetCompleted(answerSheet)
+                  ? {
+                      status: "completed",
+                      score: calculateAnswerSheetScore(answerSheet),
+                      total: TOTAL_SCORABLE_ANSWERS,
+                    }
+                  : { status: "in-progress" };
 
             return [savedSheet.quizId, state] as const;
           })
@@ -173,12 +176,14 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
               <AppButton
                 title="See Past Quizzes"
                 variant="secondary"
-                onPress={() =>
-                  Alert.alert(
-                    "Past Quizzes",
-                    "The past quiz archive is coming soon."
-                  )
-                }
+                onPress={() => {
+                  const excludedQuizIds = [
+                    nextQuiz?.id,
+                    ...recentQuizzes.map((quiz) => quiz.id),
+                  ].filter((quizId): quizId is string => quizId !== undefined);
+
+                  navigation.navigate("PastQuizzes", { excludedQuizIds });
+                }}
               />
             </View>
           </>

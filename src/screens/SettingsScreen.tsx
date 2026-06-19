@@ -9,6 +9,7 @@ import {
   type QuizReminderDay,
 } from "../lib/notifications/quizReminders";
 import { loadSettings, saveSettings } from "../lib/storage/settingsStorage";
+import { clearAllSavedAnswerSheets } from "../lib/storage/answerSheetStorage";
 import { colors } from "../theme/colors";
 import { spacing } from "../theme/spacing";
 import type { SettingsScreenProps } from "../navigation/types";
@@ -110,6 +111,35 @@ export function SettingsScreen({ navigation }: SettingsScreenProps) {
     await saveSettings(nextSettings);
   }
 
+  function handleClearAllLocalDataPress() {
+    Alert.alert(
+      "Clear all local answer data?",
+      "This removes every saved answer sheet and score from this device. Your settings and reminders will be kept.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Clear All Local Data",
+          style: "destructive",
+          onPress: () => {
+            void clearAllSavedAnswerSheets()
+              .then(() => {
+                Alert.alert(
+                  "Local answer data cleared",
+                  "All saved answer sheets and scores have been removed."
+                );
+              })
+              .catch(() => {
+                Alert.alert(
+                  "Unable to clear data",
+                  "Local answer data could not be cleared. Please try again."
+                );
+              });
+          },
+        },
+      ]
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
@@ -185,6 +215,22 @@ export function SettingsScreen({ navigation }: SettingsScreenProps) {
           </View>
         </View>
 
+        <View style={styles.settingsSection}>
+          <Text style={styles.sectionHeading}>Local data</Text>
+          <View style={styles.dataSection}>
+            <Text style={styles.settingTitle}>Saved answer sheets</Text>
+            <Text style={styles.settingDescription}>
+              Remove every locally saved answer sheet and score. App settings
+              and quiz reminders are not changed.
+            </Text>
+            <AppButton
+              title="Clear All Local Data"
+              variant="secondary"
+              onPress={handleClearAllLocalDataPress}
+            />
+          </View>
+        </View>
+
         <View style={styles.buttonSection}>
           <AppButton
             title="Back Home"
@@ -246,6 +292,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
     marginBottom: spacing.xs,
+  },
+  dataSection: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: 8,
+    borderWidth: 1,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.lg,
   },
   settingDescription: {
     color: colors.textMuted,

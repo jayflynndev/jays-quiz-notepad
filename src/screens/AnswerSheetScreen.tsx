@@ -6,6 +6,7 @@ import {
 } from "expo-keep-awake";
 import {
   Alert,
+  AppState,
   KeyboardAvoidingView,
   Platform,
   View,
@@ -20,11 +21,8 @@ import { AdBanner } from "../components/AdBanner";
 import { AnswerInput } from "../components/AnswerInput";
 import { AppButton } from "../components/AppButton";
 import { RoundSection } from "../components/RoundSection";
-import {
-  clearSavedAnswerSheetForQuiz,
-  loadAnswerSheetForQuiz,
-  saveAnswerSheetForQuiz,
-} from "../lib/storage/answerSheetStorage";
+import { useAnswerSheetAutosave } from "../hooks/useAnswerSheetAutosave";
+import { loadAnswerSheetForQuiz } from "../lib/storage/answerSheetStorage";
 import { loadSettings } from "../lib/storage/settingsStorage";
 import { colors } from "../theme/colors";
 import { spacing } from "../theme/spacing";
@@ -53,6 +51,12 @@ export function AnswerSheetScreen({
   );
   const [keepScreenAwakeDuringQuiz, setKeepScreenAwakeDuringQuiz] =
     useState(false);
+  const {
+    clearSavedSheet,
+    flushPendingSave,
+    saveErrorMessage,
+    scheduleSave,
+  } = useAnswerSheetAutosave();
   const openedQuizId = route.params.quizId;
   const openedQuizTitle = route.params.quizTitle;
   const openedQuizVideoId = route.params.youtubeVideoId;
@@ -80,9 +84,20 @@ export function AnswerSheetScreen({
         isActive = false;
         setKeepScreenAwakeDuringQuiz(false);
         void deactivateKeepAwake(KEEP_AWAKE_TAG);
+        void flushPendingSave();
       };
-    }, [])
+    }, [flushPendingSave])
   );
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (nextState) => {
+      if (nextState !== "active") {
+        void flushPendingSave();
+      }
+    });
+
+    return () => subscription.remove();
+  }, [flushPendingSave]);
 
   useEffect(() => {
     if (keepScreenAwakeDuringQuiz) {
@@ -139,7 +154,7 @@ export function AnswerSheetScreen({
       return;
     }
 
-    void saveAnswerSheetForQuiz({
+    scheduleSave({
       quizId: openedQuizId,
       quizTitle: openedQuizTitle,
       youtubeVideoId: openedQuizVideoId,
@@ -150,6 +165,7 @@ export function AnswerSheetScreen({
     openedQuizId,
     openedQuizTitle,
     openedQuizVideoId,
+    scheduleSave,
   ]);
 
   function updateRoundAnswer(
@@ -191,10 +207,15 @@ export function AnswerSheetScreen({
     }));
   }
 
-  function clearAnswers() {
+  async function clearAnswers() {
     shouldSkipNextSave.current = true;
     setAnswerSheet(createInitialAnswerSheet());
-    void clearSavedAnswerSheetForQuiz(openedQuizId);
+    await clearSavedSheet(openedQuizId);
+  }
+
+  async function returnHome() {
+    await flushPendingSave();
+    navigation.navigate("Home");
   }
 
   function handleClearAnswersPress() {
@@ -209,7 +230,9 @@ export function AnswerSheetScreen({
         {
           text: "Clear Answers",
           style: "destructive",
-          onPress: clearAnswers,
+          onPress: () => {
+            void clearAnswers();
+          },
         },
       ]
     );
@@ -223,12 +246,20 @@ export function AnswerSheetScreen({
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.stickyPlayerSection}>
           <View style={styles.youtubeContainer}>
-            <YoutubeIframe
-              height={playerHeight}
-              width={playerWidth}
-              videoId={openedQuizVideoId}
-              play={false}
-            />
+            {openedQuizVideoId !== null ? (
+              <YoutubeIframe
+                height={playerHeight}
+                width={playerWidth}
+                videoId={openedQuizVideoId}
+                play={false}
+              />
+            ) : (
+              <View style={[styles.unavailableVideo, { height: playerHeight }]}>
+                <Text style={styles.unavailableVideoText}>
+                  Video unavailable for this saved quiz.
+                </Text>
+              </View>
+            )}
           </View>
         </View>
 
@@ -241,7 +272,9 @@ export function AnswerSheetScreen({
             <AppButton
               title="Return Home"
               variant="secondary"
-              onPress={() => navigation.navigate("Home")}
+              onPress={() => {
+                void returnHome();
+              }}
             />
           </View>
 
@@ -251,6 +284,9 @@ export function AnswerSheetScreen({
 
           <Text style={styles.heading}>Answer Sheet</Text>
           <Text style={styles.quizTitle}>{openedQuizTitle}</Text>
+          {saveErrorMessage !== null ? (
+            <Text style={styles.saveErrorText}>{saveErrorMessage}</Text>
+          ) : null}
           <View style={styles.scoreCard}>
             <Text style={styles.scoreLabel}>Current score</Text>
             <View style={styles.scoreRow}>
@@ -293,7 +329,9 @@ export function AnswerSheetScreen({
             <AppButton
               title="Back Home"
               variant="secondary"
-              onPress={() => navigation.navigate("Home")}
+              onPress={() => {
+                void returnHome();
+              }}
             />
           </View>
         </ScrollView>
@@ -341,11 +379,26 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginBottom: spacing.xs,
   },
+  unavailableVideo: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: spacing.lg,
+  },
+  unavailableVideoText: {
+    color: colors.white,
+    fontSize: 14,
+    textAlign: "center",
+  },
   quizTitle: {
     color: colors.textMuted,
     fontSize: 15,
     lineHeight: 22,
     marginBottom: spacing.lg,
+  },
+  saveErrorText: {
+    color: colors.danger,
+    fontSize: 13,
+    marginBottom: spacing.md,
   },
   scoreCard: {
     backgroundColor: colors.surface,

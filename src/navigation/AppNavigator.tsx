@@ -2,6 +2,7 @@ import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { HomeScreen } from "../screens/HomeScreen";
+import { PastQuizzesScreen } from "../screens/PastQuizzesScreen";
 import { AnswerSheetScreen } from "../screens/AnswerSheetScreen";
 import { SettingsScreen } from "../screens/SettingsScreen";
 import { colors } from "../theme/colors";
@@ -27,6 +28,10 @@ export function AppNavigator() {
         <Stack.Screen
           name="AnswerSheet"
           component={AnswerSheetScreen}
+        />
+        <Stack.Screen
+          name="PastQuizzes"
+          component={PastQuizzesScreen}
         />
         <Stack.Screen
           name="Settings"

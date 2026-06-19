@@ -56,6 +56,18 @@ export function hasMarkedAnswers(answerSheet: AnswerSheetState) {
   );
 }
 
+export function hasAnswerSheetProgress(answerSheet: AnswerSheetState) {
+  return (
+    answerSheet.tieBreaker.trim().length > 0 ||
+    ROUND_NUMBERS.some((roundNumber) =>
+      answerSheet.rounds[roundNumber].some(
+        (answer) => answer.trim().length > 0
+      )
+    ) ||
+    hasMarkedAnswers(answerSheet)
+  );
+}
+
 export function isAnswerSheetCompleted(answerSheet: AnswerSheetState) {
   return ROUND_NUMBERS.every((roundNumber) =>
     answerSheet.marks[roundNumber].every((mark) => mark !== "unmarked")

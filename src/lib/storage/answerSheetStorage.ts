@@ -13,6 +13,8 @@ import {
 const ANSWER_SHEET_INDEX_STORAGE_KEY = "jays-quiz-notepad:answer-sheets:index";
 const ANSWER_SHEET_STORAGE_KEY_PREFIX = "jays-quiz-notepad:answer-sheet:";
 
+let storageOperationQueue: Promise<void> = Promise.resolve();
+
 type StoredAnswerSheet = {
   rounds: Partial<Record<string, unknown>>;
   marks?: Partial<Record<string, unknown>>;
@@ -30,9 +32,28 @@ export type SavedAnswerSheetSummary = {
 };
 
 type StoredAnswerSheetRecord = SavedAnswerSheetSummary & {
+  answerSheet: AnswerSheetState;
+};
+
+export type SaveAnswerSheetRequest = {
+  quizId: string;
+  quizTitle: string | null;
   youtubeVideoId: string | null;
   answerSheet: AnswerSheetState;
 };
+
+function enqueueStorageOperation<Result>(
+  operation: () => Promise<Result>
+): Promise<Result> {
+  const result = storageOperationQueue.then(operation, operation);
+
+  storageOperationQueue = result.then(
+    () => undefined,
+    () => undefined
+  );
+
+  return result;
+}
 
 function isStoredAnswerSheet(value: unknown): value is StoredAnswerSheet {
   if (typeof value !== "object" || value === null) {
@@ -248,41 +269,92 @@ function parseSavedAnswerSheetRecord(
   }
 }
 
-async function loadSavedAnswerSheetIndex() {
-  const storedIndex = await AsyncStorage.getItem(ANSWER_SHEET_INDEX_STORAGE_KEY);
+function getSummary(record: StoredAnswerSheetRecord): SavedAnswerSheetSummary {
+  const { answerSheet: _answerSheet, ...summary } = record;
 
-  if (storedIndex === null) {
-    return [];
-  }
-
-  return parseSavedAnswerSheetIndex(storedIndex);
+  return summary;
 }
 
-async function saveSavedAnswerSheetIndex(index: SavedAnswerSheetSummary[]) {
-  await AsyncStorage.setItem(
-    ANSWER_SHEET_INDEX_STORAGE_KEY,
-    JSON.stringify(index)
-  );
-}
-
-export async function listSavedAnswerSheets() {
-  const index = await loadSavedAnswerSheetIndex();
-
-  return index.sort((firstSheet, secondSheet) =>
+function sortSavedAnswerSheets(index: SavedAnswerSheetSummary[]) {
+  return [...index].sort((firstSheet, secondSheet) =>
     secondSheet.updatedAt.localeCompare(firstSheet.updatedAt)
   );
 }
 
-export async function loadAnswerSheetForQuiz(quizId: string) {
-  const storedAnswerSheet = await AsyncStorage.getItem(
-    getAnswerSheetStorageKey(quizId)
+function areIndexesEqual(
+  firstIndex: SavedAnswerSheetSummary[],
+  secondIndex: SavedAnswerSheetSummary[]
+) {
+  return (
+    JSON.stringify(sortSavedAnswerSheets(firstIndex)) ===
+    JSON.stringify(sortSavedAnswerSheets(secondIndex))
+  );
+}
+
+async function loadStoredIndex() {
+  const storedIndex = await AsyncStorage.getItem(ANSWER_SHEET_INDEX_STORAGE_KEY);
+
+  return storedIndex === null ? [] : parseSavedAnswerSheetIndex(storedIndex);
+}
+
+async function loadRecords() {
+  const storageKeys = await AsyncStorage.getAllKeys();
+  const recordKeys = storageKeys.filter((key) =>
+    key.startsWith(ANSWER_SHEET_STORAGE_KEY_PREFIX)
   );
 
-  if (storedAnswerSheet === null) {
-    return null;
+  if (recordKeys.length === 0) {
+    return [];
   }
 
-  const record = parseSavedAnswerSheetRecord(storedAnswerSheet);
+  const storedRecords = await AsyncStorage.multiGet(recordKeys);
+
+  return storedRecords.flatMap(([, value]) => {
+    if (value === null) {
+      return [];
+    }
+
+    const record = parseSavedAnswerSheetRecord(value);
+
+    return record === null ? [] : [record];
+  });
+}
+
+async function recoverSavedAnswerSheetIndex() {
+  const [storedIndex, records] = await Promise.all([
+    loadStoredIndex(),
+    loadRecords(),
+  ]);
+  const recoveredIndex = sortSavedAnswerSheets(records.map(getSummary));
+
+  if (!areIndexesEqual(storedIndex, recoveredIndex)) {
+    await AsyncStorage.setItem(
+      ANSWER_SHEET_INDEX_STORAGE_KEY,
+      JSON.stringify(recoveredIndex)
+    );
+  }
+
+  return recoveredIndex;
+}
+
+export async function listSavedAnswerSheets() {
+  return enqueueStorageOperation(() => recoverSavedAnswerSheetIndex());
+}
+
+export async function loadSavedAnswerSheetForQuiz(quizId: string) {
+  return enqueueStorageOperation(async () => {
+    const storedAnswerSheet = await AsyncStorage.getItem(
+      getAnswerSheetStorageKey(quizId)
+    );
+
+    return storedAnswerSheet === null
+      ? null
+      : parseSavedAnswerSheetRecord(storedAnswerSheet);
+  });
+}
+
+export async function loadAnswerSheetForQuiz(quizId: string) {
+  const record = await loadSavedAnswerSheetForQuiz(quizId);
 
   return record?.answerSheet ?? null;
 }
@@ -292,28 +364,12 @@ export async function saveAnswerSheetForQuiz({
   quizTitle,
   youtubeVideoId,
   answerSheet,
-}: {
-  quizId: string;
-  quizTitle: string | null;
-  youtubeVideoId: string | null;
-  answerSheet: AnswerSheetState;
-}) {
-  const updatedAt = new Date().toISOString();
-  const score = calculateAnswerSheetScore(answerSheet);
-  const sheetHasMarkedAnswers = hasMarkedAnswers(answerSheet);
-  const record: StoredAnswerSheetRecord = {
-    quizId,
-    quizTitle,
-    youtubeVideoId,
-    updatedAt,
-    score,
-    total: TOTAL_SCORABLE_ANSWERS,
-    hasMarkedAnswers: sheetHasMarkedAnswers,
-    answerSheet,
-  };
-  const index = await loadSavedAnswerSheetIndex();
-  const nextIndex = [
-    {
+}: SaveAnswerSheetRequest) {
+  return enqueueStorageOperation(async () => {
+    const updatedAt = new Date().toISOString();
+    const score = calculateAnswerSheetScore(answerSheet);
+    const sheetHasMarkedAnswers = hasMarkedAnswers(answerSheet);
+    const record: StoredAnswerSheetRecord = {
       quizId,
       quizTitle,
       youtubeVideoId,
@@ -321,22 +377,42 @@ export async function saveAnswerSheetForQuiz({
       score,
       total: TOTAL_SCORABLE_ANSWERS,
       hasMarkedAnswers: sheetHasMarkedAnswers,
-    },
-    ...index.filter((sheet) => sheet.quizId !== quizId),
-  ];
+      answerSheet,
+    };
+    const index = await recoverSavedAnswerSheetIndex();
+    const nextIndex = sortSavedAnswerSheets([
+      getSummary(record),
+      ...index.filter((sheet) => sheet.quizId !== quizId),
+    ]);
 
-  await AsyncStorage.setItem(
-    getAnswerSheetStorageKey(quizId),
-    JSON.stringify(record)
-  );
-  await saveSavedAnswerSheetIndex(nextIndex);
+    await AsyncStorage.multiSet([
+      [getAnswerSheetStorageKey(quizId), JSON.stringify(record)],
+      [ANSWER_SHEET_INDEX_STORAGE_KEY, JSON.stringify(nextIndex)],
+    ]);
+  });
 }
 
 export async function clearSavedAnswerSheetForQuiz(quizId: string) {
-  const index = await loadSavedAnswerSheetIndex();
+  return enqueueStorageOperation(async () => {
+    await AsyncStorage.multiRemove([
+      getAnswerSheetStorageKey(quizId),
+      ANSWER_SHEET_INDEX_STORAGE_KEY,
+    ]);
+    await recoverSavedAnswerSheetIndex();
+  });
+}
 
-  await AsyncStorage.removeItem(getAnswerSheetStorageKey(quizId));
-  await saveSavedAnswerSheetIndex(
-    index.filter((sheet) => sheet.quizId !== quizId)
-  );
+export async function clearAllSavedAnswerSheets() {
+  return enqueueStorageOperation(async () => {
+    const storageKeys = await AsyncStorage.getAllKeys();
+    const answerSheetKeys = storageKeys.filter(
+      (key) =>
+        key === ANSWER_SHEET_INDEX_STORAGE_KEY ||
+        key.startsWith(ANSWER_SHEET_STORAGE_KEY_PREFIX)
+    );
+
+    if (answerSheetKeys.length > 0) {
+      await AsyncStorage.multiRemove(answerSheetKeys);
+    }
+  });
 }

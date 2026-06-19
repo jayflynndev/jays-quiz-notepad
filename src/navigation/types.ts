@@ -5,8 +5,9 @@ export type RootStackParamList = {
   AnswerSheet: {
     quizId: string;
     quizTitle: string;
-    youtubeVideoId: string;
+    youtubeVideoId: string | null;
   };
+  PastQuizzes: { excludedQuizIds: string[] };
   Settings: undefined;
 };
 
@@ -23,4 +24,9 @@ export type AnswerSheetScreenProps = NativeStackScreenProps<
 export type SettingsScreenProps = NativeStackScreenProps<
   RootStackParamList,
   "Settings"
+>;
+
+export type PastQuizzesScreenProps = NativeStackScreenProps<
+  RootStackParamList,
+  "PastQuizzes"
 >;
