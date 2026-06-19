@@ -63,9 +63,12 @@ export function QuizCard({
   return (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
-        <Text style={styles.cardEyebrow}>
-          {isLoading ? "Loading quiz" : "Current quiz"}
-        </Text>
+        <View>
+          <Text style={styles.cardEyebrow}>
+            {isLoading ? "Loading quiz" : "Current quiz"}
+          </Text>
+          <Text style={styles.cardMeta}>Ready when you are</Text>
+        </View>
         <View style={[styles.statusBadge, getStatusBadgeStyle(quiz.status)]}>
           <Text style={[styles.statusText, getStatusTextStyle(quiz.status)]}>
             {formatQuizStatus(quiz.status)}
@@ -87,25 +90,30 @@ export function QuizCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.white,
-    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    borderColor: colors.borderStrong,
     borderRadius: 8,
     borderWidth: 1,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.xl,
   },
   cardHeader: {
-    alignItems: "center",
+    alignItems: "flex-start",
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
   },
   cardEyebrow: {
-    color: colors.textLight,
+    color: colors.primary,
     fontSize: 13,
     fontWeight: "700",
     letterSpacing: 0,
     textTransform: "uppercase",
+  },
+  cardMeta: {
+    color: colors.textLight,
+    fontSize: 13,
+    marginTop: spacing.xs,
   },
   statusBadge: {
     borderRadius: 8,
@@ -118,10 +126,10 @@ const styles = StyleSheet.create({
     letterSpacing: 0,
   },
   liveBadge: {
-    backgroundColor: "#dcfce7",
+    backgroundColor: colors.successBackground,
   },
   liveBadgeText: {
-    color: "#166534",
+    color: colors.success,
   },
   upcomingBadge: {
     backgroundColor: "#dbeafe",
@@ -137,16 +145,16 @@ const styles = StyleSheet.create({
   },
   title: {
     color: colors.text,
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: "700",
-    lineHeight: 28,
+    lineHeight: 31,
     marginBottom: spacing.sm,
   },
   startTime: {
-    color: colors.textLight,
+    color: colors.textMuted,
     fontSize: 15,
     lineHeight: 22,
-    marginBottom: spacing.lg,
+    marginBottom: spacing.xl,
   },
   fallbackText: {
     color: colors.textLight,

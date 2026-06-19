@@ -79,16 +79,16 @@ export function AnswerInput({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
   },
   label: {
-    color: colors.text,
+    color: colors.textMuted,
     fontSize: 14,
-    fontWeight: "600",
-    marginBottom: spacing.xs,
+    fontWeight: "700",
+    marginBottom: spacing.sm,
   },
   input: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderColor: colors.border,
     borderRadius: 8,
     borderWidth: 1,
@@ -96,11 +96,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     minHeight: 48,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.md,
   },
   markRow: {
     flexDirection: "row",
-    marginTop: spacing.sm,
+    marginTop: spacing.md,
   },
   markButton: {
     alignItems: "center",
@@ -110,24 +110,25 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: spacing.xs,
     paddingHorizontal: spacing.xs,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.md,
   },
   selectedMarkButton: {
-    backgroundColor: colors.text,
-    borderColor: colors.text,
+    backgroundColor: colors.textMuted,
+    borderColor: colors.textMuted,
   },
   correctButton: {
-    backgroundColor: "#166534",
-    borderColor: "#166534",
+    backgroundColor: colors.success,
+    borderColor: colors.success,
   },
   incorrectButton: {
-    backgroundColor: "#991b1b",
-    borderColor: "#991b1b",
+    backgroundColor: colors.danger,
+    borderColor: colors.danger,
   },
   markButtonText: {
-    color: colors.textLight,
+    color: colors.textMuted,
     fontSize: 12,
-    fontWeight: "600",
+    fontWeight: "700",
+    textAlign: "center",
   },
   selectedMarkButtonText: {
     color: colors.white,

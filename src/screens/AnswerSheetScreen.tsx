@@ -16,7 +16,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import YoutubeIframe from "react-native-youtube-iframe";
-import { AdBannerPlaceholder } from "../components/AdBannerPlaceholder";
+import { AdBanner } from "../components/AdBanner";
 import { AnswerInput } from "../components/AnswerInput";
 import { AppButton } from "../components/AppButton";
 import { RoundSection } from "../components/RoundSection";
@@ -62,7 +62,8 @@ export function AnswerSheetScreen({
       : route.params.quizTitle ?? "Saved answer sheet";
   const openedQuizVideoId =
     route.params?.youtubeVideoId ?? currentQuiz.youtubeVideoId;
-  const canUseOpenedQuiz = route.params?.quizId !== undefined || !isCurrentQuizLoading;
+  const canUseOpenedQuiz =
+    route.params?.quizId !== undefined || !isCurrentQuizLoading;
   const playerWidth = Math.max(width - spacing.lg * 2, 200);
   const playerHeight = Math.round(playerWidth * (9 / 16));
   const score = calculateAnswerSheetScore(answerSheet);
@@ -264,14 +265,18 @@ export function AnswerSheetScreen({
           </View>
 
           <View style={styles.adSection}>
-            <AdBannerPlaceholder />
+            <AdBanner />
           </View>
 
           <Text style={styles.heading}>Answer Sheet</Text>
           <Text style={styles.quizTitle}>{openedQuizTitle}</Text>
-          <Text style={styles.scoreText}>
-            Score: {score} / {TOTAL_SCORABLE_ANSWERS}
-          </Text>
+          <View style={styles.scoreCard}>
+            <Text style={styles.scoreLabel}>Current score</Text>
+            <View style={styles.scoreRow}>
+              <Text style={styles.scoreNumber}>{score}</Text>
+              <Text style={styles.scoreTotal}>/ {TOTAL_SCORABLE_ANSWERS}</Text>
+            </View>
+          </View>
 
           {ROUND_NUMBERS.map((roundNumber) => (
             <RoundSection
@@ -329,7 +334,7 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
+    paddingTop: spacing.lg,
     paddingBottom: 160,
   },
   stickyPlayerSection: {
@@ -350,30 +355,64 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   heading: {
-    fontSize: 24,
-    fontWeight: "bold",
+    fontSize: 28,
+    fontWeight: "700",
     color: colors.text,
     marginBottom: spacing.xs,
   },
   quizTitle: {
-    color: colors.textLight,
+    color: colors.textMuted,
     fontSize: 15,
-    marginBottom: spacing.sm,
+    lineHeight: 22,
+    marginBottom: spacing.lg,
   },
-  scoreText: {
-    color: colors.text,
+  scoreCard: {
+    backgroundColor: colors.surface,
+    borderColor: colors.borderStrong,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: spacing.xl,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+  },
+  scoreLabel: {
+    color: colors.textLight,
+    fontSize: 13,
+    fontWeight: "700",
+    marginBottom: spacing.xs,
+    textTransform: "uppercase",
+  },
+  scoreRow: {
+    alignItems: "flex-end",
+    flexDirection: "row",
+  },
+  scoreNumber: {
+    color: colors.primary,
+    fontSize: 34,
+    fontWeight: "700",
+    lineHeight: 40,
+  },
+  scoreTotal: {
+    color: colors.textMuted,
     fontSize: 18,
     fontWeight: "700",
-    marginBottom: spacing.lg,
+    marginBottom: spacing.xs,
+    marginLeft: spacing.xs,
   },
   sectionHeading: {
     color: colors.text,
     fontSize: 20,
-    fontWeight: "bold",
+    fontWeight: "700",
     marginBottom: spacing.md,
   },
   tieBreakerSection: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: 8,
+    borderWidth: 1,
     marginBottom: spacing.xl,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
   },
   buttonSection: {
     marginBottom: spacing.lg,

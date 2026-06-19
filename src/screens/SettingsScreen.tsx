@@ -118,62 +118,71 @@ export function SettingsScreen({ navigation }: SettingsScreenProps) {
       >
         <Text style={styles.heading}>Settings</Text>
 
-        <View style={styles.settingRow}>
-          <View style={styles.settingTextSection}>
-            <Text style={styles.settingTitle}>Keep screen awake during quiz</Text>
-            <Text style={styles.settingDescription}>
-              Prevents your phone from sleeping while the answer sheet is open.
-            </Text>
+        <View style={styles.settingsSection}>
+          <Text style={styles.sectionHeading}>Quiz screen</Text>
+          <View style={styles.settingRow}>
+            <View style={styles.settingTextSection}>
+              <Text style={styles.settingTitle}>
+                Keep screen awake during quiz
+              </Text>
+              <Text style={styles.settingDescription}>
+                Prevents your phone from sleeping while the answer sheet is
+                open.
+              </Text>
+            </View>
+            <Switch
+              value={settings.keepScreenAwakeDuringQuiz}
+              onValueChange={updateKeepScreenAwakeDuringQuiz}
+              trackColor={{
+                false: colors.borderStrong,
+                true: colors.primary,
+              }}
+              thumbColor={colors.white}
+            />
           </View>
-          <Switch
-            value={settings.keepScreenAwakeDuringQuiz}
-            onValueChange={updateKeepScreenAwakeDuringQuiz}
-            trackColor={{
-              false: colors.border,
-              true: colors.primary,
-            }}
-            thumbColor={colors.white}
-          />
         </View>
 
-        <View style={styles.settingRow}>
-          <View style={styles.settingTextSection}>
-            <Text style={styles.settingTitle}>Thursday quiz reminder</Text>
-            <Text style={styles.settingDescription}>
-              Sends a local reminder every Thursday at 7:00pm.
-            </Text>
+        <View style={styles.settingsSection}>
+          <Text style={styles.sectionHeading}>Reminders</Text>
+          <View style={styles.settingRow}>
+            <View style={styles.settingTextSection}>
+              <Text style={styles.settingTitle}>Thursday quiz reminder</Text>
+              <Text style={styles.settingDescription}>
+                Sends a local reminder every Thursday at 7:00pm.
+              </Text>
+            </View>
+            <Switch
+              value={settings.thursdayQuizReminderEnabled}
+              onValueChange={(value) => {
+                void updateQuizReminder("thursday", value);
+              }}
+              trackColor={{
+                false: colors.borderStrong,
+                true: colors.primary,
+              }}
+              thumbColor={colors.white}
+            />
           </View>
-          <Switch
-            value={settings.thursdayQuizReminderEnabled}
-            onValueChange={(value) => {
-              void updateQuizReminder("thursday", value);
-            }}
-            trackColor={{
-              false: colors.border,
-              true: colors.primary,
-            }}
-            thumbColor={colors.white}
-          />
-        </View>
 
-        <View style={styles.settingRow}>
-          <View style={styles.settingTextSection}>
-            <Text style={styles.settingTitle}>Saturday quiz reminder</Text>
-            <Text style={styles.settingDescription}>
-              Sends a local reminder every Saturday at 7:00pm.
-            </Text>
+          <View style={styles.settingRow}>
+            <View style={styles.settingTextSection}>
+              <Text style={styles.settingTitle}>Saturday quiz reminder</Text>
+              <Text style={styles.settingDescription}>
+                Sends a local reminder every Saturday at 7:00pm.
+              </Text>
+            </View>
+            <Switch
+              value={settings.saturdayQuizReminderEnabled}
+              onValueChange={(value) => {
+                void updateQuizReminder("saturday", value);
+              }}
+              trackColor={{
+                false: colors.borderStrong,
+                true: colors.primary,
+              }}
+              thumbColor={colors.white}
+            />
           </View>
-          <Switch
-            value={settings.saturdayQuizReminderEnabled}
-            onValueChange={(value) => {
-              void updateQuizReminder("saturday", value);
-            }}
-            trackColor={{
-              false: colors.border,
-              true: colors.primary,
-            }}
-            thumbColor={colors.white}
-          />
         </View>
 
         <View style={styles.buttonSection}>
@@ -202,20 +211,31 @@ const styles = StyleSheet.create({
   },
   heading: {
     fontSize: 28,
-    fontWeight: "bold",
+    fontWeight: "700",
     color: colors.text,
-    marginBottom: spacing.lg,
+    marginBottom: spacing.xl,
+  },
+  settingsSection: {
+    marginBottom: spacing.xl,
+  },
+  sectionHeading: {
+    color: colors.textMuted,
+    fontSize: 13,
+    fontWeight: "700",
+    marginBottom: spacing.sm,
+    textTransform: "uppercase",
   },
   settingRow: {
     alignItems: "center",
+    backgroundColor: colors.surface,
     borderColor: colors.border,
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.lg,
   },
   settingTextSection: {
     flex: 1,
@@ -224,13 +244,13 @@ const styles = StyleSheet.create({
   settingTitle: {
     color: colors.text,
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: "700",
     marginBottom: spacing.xs,
   },
   settingDescription: {
-    color: colors.textLight,
+    color: colors.textMuted,
     fontSize: 14,
-    lineHeight: 24,
+    lineHeight: 21,
   },
   buttonSection: {
     marginTop: spacing.xl,

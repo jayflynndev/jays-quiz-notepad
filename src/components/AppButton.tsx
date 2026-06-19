@@ -46,8 +46,9 @@ export function AppButton({
 
 const styles = StyleSheet.create({
   button: {
-    paddingVertical: spacing.md,
+    minHeight: 48,
     paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
     borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
@@ -55,15 +56,18 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     backgroundColor: colors.primary,
+    borderColor: colors.primaryDark,
+    borderWidth: 1,
   },
   secondaryButton: {
-    backgroundColor: colors.lightGray,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
   },
   text: {
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: "700",
+    letterSpacing: 0,
   },
   primaryText: {
     color: colors.white,

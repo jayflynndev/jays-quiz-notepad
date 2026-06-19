@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import { View, StyleSheet, Text, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AdBannerPlaceholder } from "../components/AdBannerPlaceholder";
+import { AdBanner } from "../components/AdBanner";
 import { AppButton } from "../components/AppButton";
 import { QuizCard } from "../components/QuizCard";
 import { useCurrentQuiz } from "../hooks/useCurrentQuiz";
@@ -108,7 +108,10 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
 
         {savedSheets.length > 0 ? (
           <View style={styles.previousSheetsSection}>
-            <Text style={styles.sectionHeading}>Previous Sheets</Text>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.sectionHeading}>Previous Sheets</Text>
+              <Text style={styles.sectionCount}>{savedSheets.length}</Text>
+            </View>
             {savedSheets.map((sheet) => (
               <View key={sheet.quizId} style={styles.savedSheetRow}>
                 <View style={styles.savedSheetText}>
@@ -118,10 +121,13 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
                   <Text style={styles.savedSheetDate}>
                     Saved {formatSavedAt(sheet.updatedAt)}
                   </Text>
-                  <Text style={styles.savedSheetScore}>
-                    {sheet.hasMarkedAnswers
-                      ? `${sheet.score} / ${sheet.total}`
-                      : "Not marked yet"}
+                </View>
+                <View style={styles.scoreBadge}>
+                  <Text style={styles.scoreValue}>
+                    {sheet.hasMarkedAnswers ? sheet.score : "-"}
+                  </Text>
+                  <Text style={styles.scoreTotal}>
+                    {sheet.hasMarkedAnswers ? `/ ${sheet.total}` : "Unmarked"}
                   </Text>
                 </View>
                 <View style={styles.openButtonWrapper}>
@@ -143,7 +149,7 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
         ) : null}
 
         <View style={styles.adSection}>
-          <AdBannerPlaceholder />
+          <AdBanner />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -160,12 +166,11 @@ const styles = StyleSheet.create({
   },
   content: {
     flexGrow: 1,
-    justifyContent: "center",
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.xl,
   },
   headerSection: {
-    marginBottom: spacing.xxl,
+    marginBottom: spacing.xl,
     alignItems: "center",
   },
   title: {
@@ -182,26 +187,42 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   buttonSection: {
-    marginTop: spacing.xl,
+    marginTop: spacing.lg,
   },
   previousSheetsSection: {
-    marginTop: spacing.xl,
+    marginTop: spacing.xxl,
+  },
+  sectionHeaderRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: spacing.md,
   },
   sectionHeading: {
     color: colors.text,
     fontSize: 20,
     fontWeight: "700",
-    marginBottom: spacing.md,
+  },
+  sectionCount: {
+    backgroundColor: colors.surfaceMuted,
+    borderRadius: 8,
+    color: colors.textMuted,
+    fontSize: 13,
+    fontWeight: "700",
+    overflow: "hidden",
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
   },
   savedSheetRow: {
     alignItems: "center",
+    backgroundColor: colors.surface,
     borderColor: colors.border,
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: "row",
     marginBottom: spacing.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
   },
   savedSheetText: {
     flex: 1,
@@ -216,15 +237,29 @@ const styles = StyleSheet.create({
   savedSheetDate: {
     color: colors.textLight,
     fontSize: 13,
-    marginBottom: spacing.xs,
   },
-  savedSheetScore: {
+  scoreBadge: {
+    alignItems: "center",
+    backgroundColor: colors.surfaceMuted,
+    borderRadius: 8,
+    marginRight: spacing.md,
+    minWidth: 76,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.sm,
+  },
+  scoreValue: {
     color: colors.text,
-    fontSize: 13,
+    fontSize: 18,
     fontWeight: "700",
   },
+  scoreTotal: {
+    color: colors.textLight,
+    fontSize: 12,
+    fontWeight: "700",
+    marginTop: spacing.xs,
+  },
   openButtonWrapper: {
-    minWidth: 96,
+    minWidth: 88,
   },
   adSection: {
     marginTop: spacing.lg,

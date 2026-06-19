@@ -22,7 +22,10 @@ export function RoundSection({
 }: RoundSectionProps) {
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>Round {roundNumber}</Text>
+      <View style={styles.headingRow}>
+        <Text style={styles.heading}>Round {roundNumber}</Text>
+        <Text style={styles.countText}>{answers.length} answers</Text>
+      </View>
       {answers.map((answer, index) => (
         <AnswerInput
           key={`${roundNumber}-${index}`}
@@ -40,12 +43,28 @@ export function RoundSection({
 
 const styles = StyleSheet.create({
   container: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: 8,
+    borderWidth: 1,
     marginBottom: spacing.xl,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+  },
+  headingRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: spacing.lg,
   },
   heading: {
     color: colors.text,
     fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: spacing.md,
+    fontWeight: "700",
+  },
+  countText: {
+    color: colors.textLight,
+    fontSize: 13,
+    fontWeight: "700",
   },
 });
