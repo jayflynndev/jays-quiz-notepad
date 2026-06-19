@@ -55,6 +55,7 @@ const config: ExpoConfig = {
     supportsTablet: true,
   },
   android: {
+    package: "com.jaysquiznotepad.app",
     adaptiveIcon: {
       foregroundImage: "./assets/adaptive-icon.png",
       backgroundColor: "#ffffff",
