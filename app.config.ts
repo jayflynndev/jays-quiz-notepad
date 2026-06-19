@@ -1,4 +1,5 @@
 import type { ExpoConfig } from "expo/config";
+import appInfo from "./src/config/appInfo.json";
 
 const GOOGLE_SAMPLE_ANDROID_APP_ID =
   "ca-app-pub-3940256099942544~3347511713";
@@ -34,9 +35,9 @@ const splashIcon = "./assets/branding/splash-icon.png";
 const brandPurple = "#5B218E";
 
 const config: ExpoConfig = {
-  name: "Jay's Quiz",
+  name: appInfo.appName,
   slug: "jays-quiz",
-  version: "1.0.0",
+  version: appInfo.appVersion,
   orientation: "portrait",
   icon: brandingIcon,
   userInterfaceStyle: "light",

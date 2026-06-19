@@ -5,6 +5,9 @@ import { HomeScreen } from "../screens/HomeScreen";
 import { PastQuizzesScreen } from "../screens/PastQuizzesScreen";
 import { AnswerSheetScreen } from "../screens/AnswerSheetScreen";
 import { SettingsScreen } from "../screens/SettingsScreen";
+import { PrivacyPolicyScreen } from "../screens/PrivacyPolicyScreen";
+import { AboutScreen } from "../screens/AboutScreen";
+import { ContactSupportScreen } from "../screens/ContactSupportScreen";
 import { colors } from "../theme/colors";
 import type { RootStackParamList } from "./types";
 
@@ -36,6 +39,18 @@ export function AppNavigator() {
         <Stack.Screen
           name="Settings"
           component={SettingsScreen}
+        />
+        <Stack.Screen
+          name="PrivacyPolicy"
+          component={PrivacyPolicyScreen}
+        />
+        <Stack.Screen
+          name="About"
+          component={AboutScreen}
+        />
+        <Stack.Screen
+          name="ContactSupport"
+          component={ContactSupportScreen}
         />
       </Stack.Navigator>
     </NavigationContainer>

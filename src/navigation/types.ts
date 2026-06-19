@@ -9,6 +9,9 @@ export type RootStackParamList = {
   };
   PastQuizzes: { excludedQuizIds: string[] };
   Settings: undefined;
+  PrivacyPolicy: undefined;
+  About: undefined;
+  ContactSupport: undefined;
 };
 
 export type HomeScreenProps = NativeStackScreenProps<
@@ -29,4 +32,19 @@ export type SettingsScreenProps = NativeStackScreenProps<
 export type PastQuizzesScreenProps = NativeStackScreenProps<
   RootStackParamList,
   "PastQuizzes"
+>;
+
+export type PrivacyPolicyScreenProps = NativeStackScreenProps<
+  RootStackParamList,
+  "PrivacyPolicy"
+>;
+
+export type AboutScreenProps = NativeStackScreenProps<
+  RootStackParamList,
+  "About"
+>;
+
+export type ContactSupportScreenProps = NativeStackScreenProps<
+  RootStackParamList,
+  "ContactSupport"
 >;

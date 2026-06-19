@@ -174,6 +174,11 @@ export function SettingsScreen({ navigation }: SettingsScreenProps) {
 
         <View style={styles.settingsSection}>
           <Text style={styles.sectionHeading}>Reminders</Text>
+          <Text style={styles.sectionIntroduction}>
+            Optional reminders help you remember Thursday and Saturday quizzes.
+            You can turn them off here at any time or disable notifications in
+            your device settings.
+          </Text>
           <View style={styles.settingRow}>
             <View style={styles.settingTextSection}>
               <Text style={styles.settingTitle}>Thursday quiz reminder</Text>
@@ -223,10 +228,35 @@ export function SettingsScreen({ navigation }: SettingsScreenProps) {
               Remove every locally saved answer sheet and score. App settings
               and quiz reminders are not changed.
             </Text>
+            <Text style={styles.dataTransparencyText}>
+              Your answers, marks, and scores stay on this device. They are not
+              sent to Firestore, AdMob, YouTube, or QuizHub.
+            </Text>
             <AppButton
               title="Clear All Local Data"
               variant="secondary"
               onPress={handleClearAllLocalDataPress}
+            />
+          </View>
+        </View>
+
+        <View style={styles.settingsSection}>
+          <Text style={styles.sectionHeading}>Privacy and support</Text>
+          <View style={styles.linkSection}>
+            <AppButton
+              title="Privacy Policy"
+              variant="secondary"
+              onPress={() => navigation.navigate("PrivacyPolicy")}
+            />
+            <AppButton
+              title="About"
+              variant="secondary"
+              onPress={() => navigation.navigate("About")}
+            />
+            <AppButton
+              title="Contact Support"
+              variant="secondary"
+              onPress={() => navigation.navigate("ContactSupport")}
             />
           </View>
         </View>
@@ -271,6 +301,12 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
     textTransform: "uppercase",
   },
+  sectionIntroduction: {
+    color: colors.textMuted,
+    fontSize: 14,
+    lineHeight: 21,
+    marginBottom: spacing.md,
+  },
   settingRow: {
     alignItems: "center",
     backgroundColor: colors.surface,
@@ -300,6 +336,20 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.lg,
+  },
+  dataTransparencyText: {
+    color: colors.textMuted,
+    fontSize: 14,
+    lineHeight: 21,
+    marginTop: spacing.md,
+  },
+  linkSection: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: 8,
+    borderWidth: 1,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
   },
   settingDescription: {
     color: colors.textMuted,
