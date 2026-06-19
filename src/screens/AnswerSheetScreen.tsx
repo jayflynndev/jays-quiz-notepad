@@ -21,6 +21,7 @@ import { AdBanner } from "../components/AdBanner";
 import { AnswerInput } from "../components/AnswerInput";
 import { AppButton } from "../components/AppButton";
 import { RoundSection } from "../components/RoundSection";
+import { StatePanel } from "../components/StatePanel";
 import { useAnswerSheetAutosave } from "../hooks/useAnswerSheetAutosave";
 import { loadAnswerSheetForQuiz } from "../lib/storage/answerSheetStorage";
 import { loadSettings } from "../lib/storage/settingsStorage";
@@ -63,6 +64,13 @@ export function AnswerSheetScreen({
   const playerWidth = Math.max(width - spacing.lg * 2, 200);
   const playerHeight = Math.round(playerWidth * (9 / 16));
   const score = calculateAnswerSheetScore(answerSheet);
+  const markedCount = ROUND_NUMBERS.reduce(
+    (total, roundNumber) =>
+      total +
+      answerSheet.marks[roundNumber].filter((mark) => mark !== "unmarked")
+        .length,
+    0
+  );
 
   useFocusEffect(
     React.useCallback(() => {
@@ -245,6 +253,15 @@ export function AnswerSheetScreen({
     >
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.stickyPlayerSection}>
+          <View style={styles.playerHeader}>
+            <View style={styles.liveMarker} />
+            <View style={styles.playerHeaderText}>
+              <Text style={styles.playerLabel}>QUIZ VIDEO</Text>
+              <Text style={styles.playerTitle} numberOfLines={1}>
+                {openedQuizTitle}
+              </Text>
+            </View>
+          </View>
           <View style={styles.youtubeContainer}>
             {openedQuizVideoId !== null ? (
               <YoutubeIframe
@@ -256,7 +273,10 @@ export function AnswerSheetScreen({
             ) : (
               <View style={[styles.unavailableVideo, { height: playerHeight }]}>
                 <Text style={styles.unavailableVideoText}>
-                  Video unavailable for this saved quiz.
+                  Video unavailable
+                </Text>
+                <Text style={styles.unavailableVideoDescription}>
+                  This saved quiz does not include a valid YouTube video.
                 </Text>
               </View>
             )}
@@ -285,13 +305,23 @@ export function AnswerSheetScreen({
           <Text style={styles.heading}>Answer Sheet</Text>
           <Text style={styles.quizTitle}>{openedQuizTitle}</Text>
           {saveErrorMessage !== null ? (
-            <Text style={styles.saveErrorText}>{saveErrorMessage}</Text>
+            <StatePanel
+              title="Answers not saved"
+              message={saveErrorMessage}
+              tone="error"
+            />
           ) : null}
           <View style={styles.scoreCard}>
-            <Text style={styles.scoreLabel}>Current score</Text>
-            <View style={styles.scoreRow}>
-              <Text style={styles.scoreNumber}>{score}</Text>
-              <Text style={styles.scoreTotal}>/ {TOTAL_SCORABLE_ANSWERS}</Text>
+            <View style={styles.scoreTextSection}>
+              <Text style={styles.scoreLabel}>CURRENT SCORE</Text>
+              <View style={styles.scoreRow}>
+                <Text style={styles.scoreNumber}>{score}</Text>
+                <Text style={styles.scoreTotal}>/ {TOTAL_SCORABLE_ANSWERS}</Text>
+              </View>
+            </View>
+            <View style={styles.markedSummary}>
+              <Text style={styles.markedNumber}>{markedCount}</Text>
+              <Text style={styles.markedLabel}>answers marked</Text>
             </View>
           </View>
 
@@ -357,14 +387,50 @@ const styles = StyleSheet.create({
     paddingBottom: 160,
   },
   stickyPlayerSection: {
-    backgroundColor: colors.background,
+    backgroundColor: colors.surface,
+    borderBottomColor: colors.border,
+    borderBottomWidth: 1,
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
+    paddingTop: spacing.md,
     paddingBottom: spacing.md,
+    shadowColor: "#24162f",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
+    zIndex: 2,
+  },
+  playerHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    marginBottom: spacing.sm,
+  },
+  liveMarker: {
+    backgroundColor: colors.accent,
+    borderRadius: 4,
+    height: 8,
+    marginRight: spacing.sm,
+    width: 8,
+  },
+  playerHeaderText: {
+    flex: 1,
+  },
+  playerLabel: {
+    color: colors.primary,
+    fontSize: 10,
+    fontWeight: "800",
+    marginBottom: 2,
+  },
+  playerTitle: {
+    color: colors.text,
+    fontSize: 14,
+    fontWeight: "700",
   },
   youtubeContainer: {
     backgroundColor: colors.text,
     borderRadius: 8,
+    borderColor: colors.borderStrong,
+    borderWidth: 1,
     overflow: "hidden",
   },
   adSection: {
@@ -386,7 +452,15 @@ const styles = StyleSheet.create({
   },
   unavailableVideoText: {
     color: colors.white,
-    fontSize: 14,
+    fontSize: 17,
+    fontWeight: "700",
+    marginBottom: spacing.xs,
+    textAlign: "center",
+  },
+  unavailableVideoDescription: {
+    color: "#d7d2dd",
+    fontSize: 13,
+    lineHeight: 19,
     textAlign: "center",
   },
   quizTitle: {
@@ -395,24 +469,30 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     marginBottom: spacing.lg,
   },
-  saveErrorText: {
-    color: colors.danger,
-    fontSize: 13,
-    marginBottom: spacing.md,
-  },
   scoreCard: {
-    backgroundColor: colors.surface,
-    borderColor: colors.borderStrong,
+    alignItems: "center",
+    backgroundColor: colors.primary,
+    borderColor: colors.primaryDark,
     borderRadius: 8,
     borderWidth: 1,
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: spacing.xl,
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.lg,
+    shadowColor: colors.primaryDark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  scoreTextSection: {
+    flex: 1,
   },
   scoreLabel: {
-    color: colors.textLight,
-    fontSize: 13,
-    fontWeight: "700",
+    color: "#e9d8f5",
+    fontSize: 11,
+    fontWeight: "800",
     marginBottom: spacing.xs,
     textTransform: "uppercase",
   },
@@ -421,17 +501,34 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   scoreNumber: {
-    color: colors.primary,
-    fontSize: 34,
+    color: colors.white,
+    fontSize: 40,
     fontWeight: "700",
-    lineHeight: 40,
+    lineHeight: 44,
   },
   scoreTotal: {
-    color: colors.textMuted,
+    color: "#e9d8f5",
     fontSize: 18,
     fontWeight: "700",
     marginBottom: spacing.xs,
     marginLeft: spacing.xs,
+  },
+  markedSummary: {
+    alignItems: "flex-end",
+    borderLeftColor: "#7f4ba7",
+    borderLeftWidth: 1,
+    marginLeft: spacing.md,
+    paddingLeft: spacing.lg,
+  },
+  markedNumber: {
+    color: colors.accentBackground,
+    fontSize: 22,
+    fontWeight: "800",
+  },
+  markedLabel: {
+    color: "#e9d8f5",
+    fontSize: 11,
+    marginTop: spacing.xs,
   },
   sectionHeading: {
     color: colors.text,

@@ -20,7 +20,7 @@ interface AnswerInputProps {
 }
 
 const markOptions: Array<{ label: string; value: AnswerMark }> = [
-  { label: "Unmarked", value: "unmarked" },
+  { label: "Not marked", value: "unmarked" },
   { label: "Correct", value: "correct" },
   { label: "Incorrect", value: "incorrect" },
 ];
@@ -45,12 +45,17 @@ export function AnswerInput({
         returnKeyType="next"
       />
       {mark !== undefined && onMarkChange !== undefined ? (
-        <View style={styles.markRow}>
-          {markOptions.map((option) => (
+        <View>
+          <Text style={styles.markLabel}>Mark answer</Text>
+          <View style={styles.markRow}>
+          {markOptions.map((option, optionIndex) => (
             <Pressable
               key={option.value}
               style={[
                 styles.markButton,
+                optionIndex === markOptions.length - 1
+                  ? styles.lastMarkButton
+                  : null,
                 mark === option.value ? styles.selectedMarkButton : null,
                 mark === option.value && option.value === "correct"
                   ? styles.correctButton
@@ -60,6 +65,8 @@ export function AnswerInput({
                   : null,
               ]}
               onPress={() => onMarkChange(option.value)}
+              accessibilityRole="button"
+              accessibilityState={{ selected: mark === option.value }}
             >
               <Text
                 style={[
@@ -71,6 +78,7 @@ export function AnswerInput({
               </Text>
             </Pressable>
           ))}
+          </View>
         </View>
       ) : null}
     </View>
@@ -79,54 +87,68 @@ export function AnswerInput({
 
 const styles = StyleSheet.create({
   container: {
+    borderBottomColor: colors.border,
+    borderBottomWidth: 1,
     marginBottom: spacing.lg,
+    paddingBottom: spacing.lg,
   },
   label: {
     color: colors.textMuted,
     fontSize: 14,
     fontWeight: "700",
-    marginBottom: spacing.sm,
+    marginBottom: spacing.xs,
   },
   input: {
     backgroundColor: colors.surface,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     borderRadius: 8,
     borderWidth: 1,
     color: colors.text,
     fontSize: 16,
-    minHeight: 48,
-    paddingHorizontal: spacing.md,
+    minHeight: 50,
+    paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
   },
   markRow: {
+    borderColor: colors.borderStrong,
+    borderRadius: 8,
+    borderWidth: 1,
     flexDirection: "row",
+    overflow: "hidden",
+  },
+  markLabel: {
+    color: colors.textLight,
+    fontSize: 12,
+    fontWeight: "700",
+    marginBottom: spacing.sm,
     marginTop: spacing.md,
   },
   markButton: {
     alignItems: "center",
-    borderColor: colors.border,
-    borderRadius: 8,
-    borderWidth: 1,
+    backgroundColor: colors.surface,
+    borderRightColor: colors.borderStrong,
+    borderRightWidth: 1,
     flex: 1,
-    marginRight: spacing.xs,
+    minHeight: 44,
     paddingHorizontal: spacing.xs,
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.sm,
+    justifyContent: "center",
+  },
+  lastMarkButton: {
+    borderRightWidth: 0,
   },
   selectedMarkButton: {
     backgroundColor: colors.textMuted,
-    borderColor: colors.textMuted,
   },
   correctButton: {
     backgroundColor: colors.success,
-    borderColor: colors.success,
   },
   incorrectButton: {
     backgroundColor: colors.danger,
-    borderColor: colors.danger,
   },
   markButtonText: {
     color: colors.textMuted,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "700",
     textAlign: "center",
   },

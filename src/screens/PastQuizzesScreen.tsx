@@ -3,6 +3,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppButton } from "../components/AppButton";
+import { StatePanel } from "../components/StatePanel";
 import {
   listSavedAnswerSheets,
   loadAnswerSheetForQuiz,
@@ -54,6 +55,28 @@ function formatSavedTime(value: string) {
   return Number.isNaN(date.getTime())
     ? ""
     : timeFormatter.format(date).replace(/\s/g, "").toLowerCase();
+}
+
+function getStateStyle(state: PlayedState) {
+  switch (state) {
+    case "Not Played":
+      return styles.notPlayedState;
+    case "In Progress":
+      return styles.inProgressState;
+    case "Completed":
+      return styles.completedState;
+  }
+}
+
+function getStateTextStyle(state: PlayedState) {
+  switch (state) {
+    case "Not Played":
+      return styles.notPlayedStateText;
+    case "In Progress":
+      return styles.inProgressStateText;
+    case "Completed":
+      return styles.completedStateText;
+  }
 }
 
 export function PastQuizzesScreen({
@@ -133,29 +156,48 @@ export function PastQuizzesScreen({
         </Text>
 
         {isLoading ? (
-          <Text style={styles.message}>Loading saved quizzes...</Text>
+          <StatePanel
+            title="Loading saved quizzes"
+            message="Checking answer sheets stored on this device."
+          />
         ) : errorMessage !== null ? (
-          <Text style={styles.errorText}>{errorMessage}</Text>
+          <StatePanel
+            title="Saved quizzes are unavailable"
+            message={errorMessage}
+            tone="error"
+          />
         ) : items.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.message}>No other saved quizzes yet.</Text>
-          </View>
+          <StatePanel
+            title="No past quizzes yet"
+            message="Older answer sheets will appear here after they leave the Home screen."
+          />
         ) : (
           items.map((item) => (
             <View key={item.quizId} style={styles.card}>
               <Text style={styles.cardTitle}>
                 {item.quizTitle ?? "Saved answer sheet"}
               </Text>
-              <Text style={styles.savedDate}>
-                Saved {formatSavedDate(item.updatedAt)}
-              </Text>
-              {formatSavedTime(item.updatedAt).length > 0 ? (
-                <Text style={styles.savedTime}>
-                  {formatSavedTime(item.updatedAt)}
+              <View style={styles.savedDetails}>
+                <Text style={styles.savedDate}>
+                  Saved {formatSavedDate(item.updatedAt)}
                 </Text>
-              ) : null}
+                {formatSavedTime(item.updatedAt).length > 0 ? (
+                  <Text style={styles.savedTime}>
+                    {formatSavedTime(item.updatedAt)}
+                  </Text>
+                ) : null}
+              </View>
               <View style={styles.stateRow}>
-                <Text style={styles.stateLabel}>{item.playedState}</Text>
+                <View style={[styles.stateBadge, getStateStyle(item.playedState)]}>
+                  <Text
+                    style={[
+                      styles.stateLabel,
+                      getStateTextStyle(item.playedState),
+                    ]}
+                  >
+                    {item.playedState}
+                  </Text>
+                </View>
                 {item.playedState === "Completed" ? (
                   <Text style={styles.score}>
                     {item.score} / {TOTAL_SCORABLE_ANSWERS}
@@ -216,6 +258,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: spacing.md,
     padding: spacing.lg,
+    shadowColor: "#24162f",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 1,
   },
   cardTitle: {
     color: colors.text,
@@ -226,11 +273,17 @@ const styles = StyleSheet.create({
   savedDate: {
     color: colors.textMuted,
     fontSize: 14,
-    marginBottom: spacing.xs,
+    flex: 1,
+    marginRight: spacing.sm,
   },
   savedTime: {
-    color: colors.textMuted,
+    color: colors.primary,
     fontSize: 14,
+    fontWeight: "700",
+  },
+  savedDetails: {
+    alignItems: "center",
+    flexDirection: "row",
     marginBottom: spacing.md,
   },
   stateRow: {
@@ -243,31 +296,36 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
   },
   stateLabel: {
-    color: colors.textMuted,
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "700",
+  },
+  stateBadge: {
+    borderRadius: 8,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  notPlayedState: {
+    backgroundColor: colors.surfaceMuted,
+  },
+  notPlayedStateText: {
+    color: colors.textMuted,
+  },
+  inProgressState: {
+    backgroundColor: colors.accentBackground,
+  },
+  inProgressStateText: {
+    color: "#775307",
+  },
+  completedState: {
+    backgroundColor: colors.successBackground,
+  },
+  completedStateText: {
+    color: colors.success,
   },
   score: {
     color: colors.primary,
     fontSize: 20,
     fontWeight: "700",
-  },
-  emptyState: {
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: 8,
-    borderWidth: 1,
-    padding: spacing.xl,
-  },
-  message: {
-    color: colors.textMuted,
-    fontSize: 15,
-    textAlign: "center",
-  },
-  errorText: {
-    color: colors.danger,
-    fontSize: 14,
-    lineHeight: 21,
   },
   backButton: {
     marginTop: spacing.xl,

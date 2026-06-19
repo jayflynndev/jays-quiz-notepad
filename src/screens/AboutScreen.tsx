@@ -20,18 +20,13 @@ export function AboutScreen({ navigation }: AboutScreenProps) {
         each round, and keep track of your score.
       </InfoSection>
 
-      <InfoSection title="QuizHub">
-        Quiz content and videos are provided by QuizHub. Jay's Quiz is designed
-        as the companion answer sheet for the QuizHub quiz experience.
-      </InfoSection>
-
       <InfoSection title="Support">
         For help or feedback, use Contact Support in Settings. Current support
         email: {SUPPORT_EMAIL}
       </InfoSection>
 
       <InfoSection title="Copyright">
-        Copyright {COPYRIGHT_YEAR} Jay's Quiz. All rights reserved. QuizHub and
+        Copyright {COPYRIGHT_YEAR} Jay's Quiz and QuizHub. All rights reserved.
         YouTube content remain the property of their respective owners.
       </InfoSection>
     </InfoScreenLayout>

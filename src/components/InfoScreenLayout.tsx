@@ -26,8 +26,11 @@ export function InfoScreenLayout({
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.heading}>{title}</Text>
-        {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+        <View style={styles.headerSection}>
+          <View style={styles.headerAccent} />
+          <Text style={styles.heading}>{title}</Text>
+          {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+        </View>
         <View style={styles.sections}>{children}</View>
         <AppButton title="Back to Settings" variant="secondary" onPress={onBack} />
       </ScrollView>
@@ -60,11 +63,20 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginBottom: spacing.sm,
   },
+  headerSection: {
+    marginBottom: spacing.lg,
+  },
+  headerAccent: {
+    backgroundColor: colors.accent,
+    borderRadius: 2,
+    height: 4,
+    marginBottom: spacing.lg,
+    width: 44,
+  },
   subtitle: {
     color: colors.textMuted,
     fontSize: 14,
     lineHeight: 21,
-    marginBottom: spacing.lg,
   },
   sections: {
     marginBottom: spacing.lg,
@@ -72,7 +84,7 @@ const styles = StyleSheet.create({
   section: {
     borderBottomColor: colors.border,
     borderBottomWidth: 1,
-    paddingVertical: spacing.lg,
+    paddingVertical: spacing.xl,
   },
   sectionHeading: {
     color: colors.text,

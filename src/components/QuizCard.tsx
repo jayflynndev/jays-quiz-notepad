@@ -14,6 +14,7 @@ interface QuizCardProps {
   quiz: Quiz;
   answerSheetState: QuizAnswerSheetState;
   onPressAnswerSheet: () => void;
+  featured?: boolean;
 }
 
 function formatQuizStatus(status: QuizStatus) {
@@ -104,13 +105,38 @@ function getStatusTextStyle(status: QuizStatus) {
   }
 }
 
+function getSheetStatusStyle(status: QuizAnswerSheetState["status"]) {
+  switch (status) {
+    case "not-played":
+      return styles.notPlayedState;
+    case "in-progress":
+      return styles.inProgressState;
+    case "completed":
+      return styles.completedState;
+  }
+}
+
+function getSheetStatusTextStyle(status: QuizAnswerSheetState["status"]) {
+  switch (status) {
+    case "not-played":
+      return styles.notPlayedStateText;
+    case "in-progress":
+      return styles.inProgressStateText;
+    case "completed":
+      return styles.completedStateText;
+  }
+}
+
 export function QuizCard({
   quiz,
   answerSheetState,
   onPressAnswerSheet,
+  featured = false,
 }: QuizCardProps) {
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, featured ? styles.featuredCard : null]}>
+      {featured ? <View style={styles.featuredAccent} /> : null}
+      {featured ? <Text style={styles.featuredLabel}>NEXT UP</Text> : null}
       <View style={styles.cardHeader}>
         <Text style={styles.title}>{quiz.title}</Text>
         <View style={[styles.statusBadge, getStatusBadgeStyle(quiz.status)]}>
@@ -120,20 +146,40 @@ export function QuizCard({
         </View>
       </View>
 
-      <Text style={styles.date}>{formatQuizDate(quiz.startTime)}</Text>
-      <Text style={styles.time}>{formatQuizTime(quiz.startTime)}</Text>
+      <View style={styles.scheduleRow}>
+        <Text style={styles.date}>{formatQuizDate(quiz.startTime)}</Text>
+        <View style={styles.timeBadge}>
+          <Text style={styles.time}>{formatQuizTime(quiz.startTime)}</Text>
+        </View>
+      </View>
 
       <View style={styles.sheetSummary}>
-        <View>
+        <View style={styles.sheetTextSection}>
           <Text style={styles.sheetLabel}>Answer sheet</Text>
-          <Text style={styles.sheetStatus}>
-            {formatAnswerSheetStatus(answerSheetState.status)}
-          </Text>
+          <View
+            style={[
+              styles.sheetState,
+              getSheetStatusStyle(answerSheetState.status),
+            ]}
+          >
+            <Text
+              style={[
+                styles.sheetStatus,
+                getSheetStatusTextStyle(answerSheetState.status),
+              ]}
+            >
+              {formatAnswerSheetStatus(answerSheetState.status)}
+            </Text>
+          </View>
         </View>
         {answerSheetState.status === "completed" ? (
-          <Text style={styles.score}>
-            {answerSheetState.score} / {answerSheetState.total}
-          </Text>
+          <View style={styles.scoreSection}>
+            <Text style={styles.scoreLabel}>SCORE</Text>
+            <Text style={styles.score}>
+              {answerSheetState.score}
+              <Text style={styles.scoreTotal}> / {answerSheetState.total}</Text>
+            </Text>
+          </View>
         ) : null}
       </View>
 
@@ -154,6 +200,31 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.lg,
+    shadowColor: "#24162f",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    elevation: 2,
+    overflow: "hidden",
+  },
+  featuredCard: {
+    borderColor: colors.primary,
+    borderWidth: 1,
+    paddingTop: spacing.xl,
+  },
+  featuredAccent: {
+    backgroundColor: colors.accent,
+    height: 5,
+    left: 0,
+    position: "absolute",
+    right: 0,
+    top: 0,
+  },
+  featuredLabel: {
+    color: colors.primary,
+    fontSize: 12,
+    fontWeight: "800",
+    marginBottom: spacing.sm,
   },
   cardHeader: {
     alignItems: "flex-start",
@@ -163,7 +234,7 @@ const styles = StyleSheet.create({
   title: {
     color: colors.text,
     flex: 1,
-    fontSize: 21,
+    fontSize: 20,
     fontWeight: "700",
     lineHeight: 28,
     marginRight: spacing.md,
@@ -184,10 +255,10 @@ const styles = StyleSheet.create({
     color: colors.success,
   },
   upcomingBadge: {
-    backgroundColor: "#dbeafe",
+    backgroundColor: colors.infoBackground,
   },
   upcomingBadgeText: {
-    color: "#1d4ed8",
+    color: colors.info,
   },
   endedBadge: {
     backgroundColor: colors.lightGray,
@@ -195,27 +266,42 @@ const styles = StyleSheet.create({
   endedBadgeText: {
     color: colors.textMuted,
   },
+  scheduleRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: spacing.lg,
+  },
   date: {
     color: colors.textMuted,
+    flex: 1,
     fontSize: 15,
     lineHeight: 22,
+    marginRight: spacing.md,
+  },
+  timeBadge: {
+    backgroundColor: colors.accentBackground,
+    borderRadius: 8,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
   },
   time: {
-    color: colors.text,
-    fontSize: 16,
+    color: "#775307",
+    fontSize: 14,
     fontWeight: "700",
-    marginBottom: spacing.lg,
-    marginTop: spacing.xs,
   },
   sheetSummary: {
     alignItems: "center",
-    backgroundColor: colors.surfaceMuted,
-    borderRadius: 8,
+    borderTopColor: colors.border,
+    borderTopWidth: 1,
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: spacing.sm,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
+    marginBottom: spacing.md,
+    paddingTop: spacing.md,
+  },
+  sheetTextSection: {
+    alignItems: "flex-start",
+    flex: 1,
   },
   sheetLabel: {
     color: colors.textLight,
@@ -225,13 +311,49 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   sheetStatus: {
-    color: colors.text,
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: "700",
+  },
+  sheetState: {
+    borderRadius: 8,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  notPlayedState: {
+    backgroundColor: colors.surfaceMuted,
+  },
+  notPlayedStateText: {
+    color: colors.textMuted,
+  },
+  inProgressState: {
+    backgroundColor: colors.accentBackground,
+  },
+  inProgressStateText: {
+    color: "#775307",
+  },
+  completedState: {
+    backgroundColor: colors.successBackground,
+  },
+  completedStateText: {
+    color: colors.success,
+  },
+  scoreSection: {
+    alignItems: "flex-end",
+    marginLeft: spacing.md,
+  },
+  scoreLabel: {
+    color: colors.textLight,
+    fontSize: 10,
+    fontWeight: "800",
+    marginBottom: spacing.xs,
   },
   score: {
     color: colors.primary,
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: "700",
+  },
+  scoreTotal: {
+    color: colors.textMuted,
+    fontSize: 15,
   },
 });

@@ -20,11 +20,21 @@ export function RoundSection({
   onAnswerChange,
   onMarkChange,
 }: RoundSectionProps) {
+  const markedCount = marks.filter((mark) => mark !== "unmarked").length;
+
   return (
     <View style={styles.container}>
       <View style={styles.headingRow}>
-        <Text style={styles.heading}>Round {roundNumber}</Text>
-        <Text style={styles.countText}>{answers.length} answers</Text>
+        <View style={styles.roundHeadingSection}>
+          <View style={styles.roundNumber}>
+            <Text style={styles.roundNumberText}>{roundNumber}</Text>
+          </View>
+          <View>
+            <Text style={styles.heading}>Round {roundNumber}</Text>
+            <Text style={styles.countText}>{answers.length} answers</Text>
+          </View>
+        </View>
+        <Text style={styles.markedText}>{markedCount} marked</Text>
       </View>
       {answers.map((answer, index) => (
         <AnswerInput
@@ -50,12 +60,36 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
+    shadowColor: "#24162f",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 1,
   },
   headingRow: {
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: spacing.lg,
+  },
+  roundHeadingSection: {
+    alignItems: "center",
+    flexDirection: "row",
+    flex: 1,
+  },
+  roundNumber: {
+    alignItems: "center",
+    backgroundColor: colors.primary,
+    borderRadius: 8,
+    height: 40,
+    justifyContent: "center",
+    marginRight: spacing.md,
+    width: 40,
+  },
+  roundNumberText: {
+    color: colors.white,
+    fontSize: 18,
+    fontWeight: "800",
   },
   heading: {
     color: colors.text,
@@ -65,6 +99,12 @@ const styles = StyleSheet.create({
   countText: {
     color: colors.textLight,
     fontSize: 13,
+    marginTop: spacing.xs,
+  },
+  markedText: {
+    color: colors.primary,
+    fontSize: 12,
     fontWeight: "700",
+    marginLeft: spacing.sm,
   },
 });

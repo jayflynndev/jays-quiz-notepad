@@ -146,10 +146,15 @@ export function SettingsScreen({ navigation }: SettingsScreenProps) {
         style={styles.scrollView}
         contentContainerStyle={styles.content}
       >
-        <Text style={styles.heading}>Settings</Text>
+        <View style={styles.headerSection}>
+          <Text style={styles.heading}>Settings</Text>
+          <Text style={styles.headerDescription}>
+            Choose how Jay's Quiz behaves on this device.
+          </Text>
+        </View>
 
         <View style={styles.settingsSection}>
-          <Text style={styles.sectionHeading}>Quiz screen</Text>
+          <Text style={styles.sectionHeading}>Quiz experience</Text>
           <View style={styles.settingRow}>
             <View style={styles.settingTextSection}>
               <Text style={styles.settingTitle}>
@@ -173,13 +178,13 @@ export function SettingsScreen({ navigation }: SettingsScreenProps) {
         </View>
 
         <View style={styles.settingsSection}>
-          <Text style={styles.sectionHeading}>Reminders</Text>
+          <Text style={styles.sectionHeading}>Quiz reminders</Text>
           <Text style={styles.sectionIntroduction}>
             Optional reminders help you remember Thursday and Saturday quizzes.
             You can turn them off here at any time or disable notifications in
             your device settings.
           </Text>
-          <View style={styles.settingRow}>
+          <View style={[styles.settingRow, styles.connectedTopRow]}>
             <View style={styles.settingTextSection}>
               <Text style={styles.settingTitle}>Thursday quiz reminder</Text>
               <Text style={styles.settingDescription}>
@@ -199,7 +204,7 @@ export function SettingsScreen({ navigation }: SettingsScreenProps) {
             />
           </View>
 
-          <View style={styles.settingRow}>
+          <View style={[styles.settingRow, styles.connectedBottomRow]}>
             <View style={styles.settingTextSection}>
               <Text style={styles.settingTitle}>Saturday quiz reminder</Text>
               <Text style={styles.settingDescription}>
@@ -221,7 +226,7 @@ export function SettingsScreen({ navigation }: SettingsScreenProps) {
         </View>
 
         <View style={styles.settingsSection}>
-          <Text style={styles.sectionHeading}>Local data</Text>
+          <Text style={styles.sectionHeading}>Your data</Text>
           <View style={styles.dataSection}>
             <Text style={styles.settingTitle}>Saved answer sheets</Text>
             <Text style={styles.settingDescription}>
@@ -241,7 +246,7 @@ export function SettingsScreen({ navigation }: SettingsScreenProps) {
         </View>
 
         <View style={styles.settingsSection}>
-          <Text style={styles.sectionHeading}>Privacy and support</Text>
+          <Text style={styles.sectionHeading}>Help and information</Text>
           <View style={styles.linkSection}>
             <AppButton
               title="Privacy Policy"
@@ -285,21 +290,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.xl,
   },
+  headerSection: {
+    marginBottom: spacing.xl,
+  },
   heading: {
     fontSize: 28,
     fontWeight: "700",
     color: colors.text,
-    marginBottom: spacing.xl,
+    marginBottom: spacing.xs,
+  },
+  headerDescription: {
+    color: colors.textMuted,
+    fontSize: 15,
+    lineHeight: 22,
   },
   settingsSection: {
     marginBottom: spacing.xl,
   },
   sectionHeading: {
-    color: colors.textMuted,
-    fontSize: 13,
+    color: colors.text,
+    fontSize: 18,
     fontWeight: "700",
-    marginBottom: spacing.sm,
-    textTransform: "uppercase",
+    marginBottom: spacing.md,
   },
   sectionIntroduction: {
     color: colors.textMuted,
@@ -318,6 +330,22 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.lg,
+    shadowColor: "#24162f",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 5,
+    elevation: 1,
+  },
+  connectedTopRow: {
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    marginBottom: 0,
+  },
+  connectedBottomRow: {
+    borderTopColor: colors.border,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+    borderTopWidth: 0,
   },
   settingTextSection: {
     flex: 1,
@@ -336,6 +364,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.lg,
+    shadowColor: "#24162f",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 5,
+    elevation: 1,
   },
   dataTransparencyText: {
     color: colors.textMuted,
@@ -350,6 +383,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
+    shadowColor: "#24162f",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 5,
+    elevation: 1,
   },
   settingDescription: {
     color: colors.textMuted,

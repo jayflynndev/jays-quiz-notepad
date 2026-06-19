@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   ViewStyle,
-  TextStyle,
 } from "react-native";
 import { colors } from "../theme/colors";
 import { spacing } from "../theme/spacing";
@@ -46,7 +45,7 @@ export function AppButton({
 
 const styles = StyleSheet.create({
   button: {
-    minHeight: 48,
+    minHeight: 50,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     borderRadius: 8,
@@ -58,6 +57,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     borderColor: colors.primaryDark,
     borderWidth: 1,
+    shadowColor: colors.primaryDark,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.16,
+    shadowRadius: 4,
+    elevation: 2,
   },
   secondaryButton: {
     backgroundColor: colors.surface,
@@ -65,7 +69,7 @@ const styles = StyleSheet.create({
     borderColor: colors.borderStrong,
   },
   text: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "700",
     letterSpacing: 0,
   },

@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AdBanner } from "../components/AdBanner";
 import { AppButton } from "../components/AppButton";
+import { StatePanel } from "../components/StatePanel";
 import {
   QuizCard,
   type QuizAnswerSheetState,
@@ -24,6 +25,7 @@ import {
 import type { HomeScreenProps } from "../navigation/types";
 
 const NOT_PLAYED: QuizAnswerSheetState = { status: "not-played" };
+const appIcon = require("../../assets/branding/icon.png");
 
 function getQuizErrorMessage(errorMessage: string | null) {
   if (errorMessage === null) {
@@ -31,18 +33,18 @@ function getQuizErrorMessage(errorMessage: string | null) {
   }
 
   if (errorMessage.includes("not configured")) {
-    return "Firebase is not configured, so quizzes cannot be loaded.";
+    return "Quiz information is not available on this device yet.";
   }
 
   if (errorMessage.includes("invalid shape")) {
-    return "A Firestore quiz has invalid fields and could not be displayed.";
+    return "One of the latest quizzes could not be displayed.";
   }
 
   if (errorMessage.includes("permission-denied")) {
-    return "Firestore rules blocked the quiz read.";
+    return "The quiz schedule could not be accessed right now.";
   }
 
-  return "Unable to load quizzes from Firestore.";
+  return "Check your connection and try opening the app again.";
 }
 
 export function HomeScreen({ navigation }: HomeScreenProps) {
@@ -97,9 +99,15 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
         contentContainerStyle={styles.content}
       >
         <View style={styles.headerSection}>
-          <Text style={styles.title}>Jay's Quiz</Text>
+          <View style={styles.brandRow}>
+            <Image source={appIcon} style={styles.appIcon} />
+            <View style={styles.brandText}>
+              <Text style={styles.eyebrow}>QUIZHUB</Text>
+              <Text style={styles.title}>Jay's Quiz</Text>
+            </View>
+          </View>
           <Text style={styles.subtitle}>
-            Choose a quiz to watch and open its answer sheet.
+            Watch, answer and keep every score in one place.
           </Text>
         </View>
 
@@ -112,18 +120,29 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
         </View>
 
         {quizErrorMessage !== null ? (
-          <Text style={styles.errorText}>{quizErrorMessage}</Text>
+          <StatePanel
+            title="Quizzes are unavailable"
+            message={quizErrorMessage}
+            tone="error"
+          />
         ) : null}
 
         {isLoading ? (
-          <Text style={styles.emptyText}>Loading quizzes...</Text>
+          <StatePanel
+            title="Loading quizzes"
+            message="Checking QuizHub for the latest schedule."
+          />
         ) : (
           <>
             <View style={styles.quizSection}>
               <Text style={styles.sectionHeading}>Next Quiz</Text>
+              <Text style={styles.sectionDescription}>
+                Your next scheduled quiz, ready when you are.
+              </Text>
               {nextQuiz !== null ? (
                 <QuizCard
                   quiz={nextQuiz}
+                  featured
                   answerSheetState={
                     answerSheetStates.get(nextQuiz.id) ?? NOT_PLAYED
                   }
@@ -136,16 +155,18 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
                   }
                 />
               ) : (
-                <View style={styles.emptyState}>
-                  <Text style={styles.emptyStateText}>
-                    No upcoming quiz set yet.
-                  </Text>
-                </View>
+                <StatePanel
+                  title="No upcoming quiz set yet"
+                  message="Check back soon for the next QuizHub date."
+                />
               )}
             </View>
 
             <View style={styles.quizSection}>
               <Text style={styles.sectionHeading}>Recent Quizzes</Text>
+              <Text style={styles.sectionDescription}>
+                Continue an answer sheet or revisit your latest scores.
+              </Text>
               {recentQuizzes.length > 0 ? (
                 recentQuizzes.map((quiz) => (
                   <QuizCard
@@ -164,11 +185,10 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
                   />
                 ))
               ) : (
-                <View style={styles.emptyState}>
-                  <Text style={styles.emptyStateText}>
-                    No recent quizzes are available yet.
-                  </Text>
-                </View>
+                <StatePanel
+                  title="No recent quizzes"
+                  message="Completed Thursday and Saturday quizzes will appear here."
+                />
               )}
             </View>
 
@@ -211,21 +231,37 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xl,
   },
   headerSection: {
+    marginBottom: spacing.xl,
+  },
+  brandRow: {
     alignItems: "center",
-    marginBottom: spacing.lg,
+    flexDirection: "row",
+    marginBottom: spacing.md,
+  },
+  appIcon: {
+    borderRadius: 8,
+    height: 62,
+    marginRight: spacing.md,
+    width: 62,
+  },
+  brandText: {
+    flex: 1,
+  },
+  eyebrow: {
+    color: colors.accent,
+    fontSize: 12,
+    fontWeight: "800",
+    marginBottom: spacing.xs,
   },
   title: {
     color: colors.text,
     fontSize: 32,
     fontWeight: "700",
-    marginBottom: spacing.sm,
-    textAlign: "center",
   },
   subtitle: {
-    color: colors.textLight,
+    color: colors.textMuted,
     fontSize: 16,
     lineHeight: 24,
-    textAlign: "center",
   },
   buttonSection: {
     marginBottom: spacing.xl,
@@ -237,33 +273,13 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 22,
     fontWeight: "700",
-    marginBottom: spacing.md,
+    marginBottom: spacing.xs,
   },
-  errorText: {
-    color: colors.danger,
-    fontSize: 13,
-    lineHeight: 20,
-    marginBottom: spacing.lg,
-  },
-  emptyState: {
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: 8,
-    borderWidth: 1,
-    marginBottom: spacing.lg,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.xl,
-  },
-  emptyStateText: {
+  sectionDescription: {
     color: colors.textMuted,
-    fontSize: 15,
-    textAlign: "center",
-  },
-  emptyText: {
-    color: colors.textLight,
-    fontSize: 15,
-    paddingVertical: spacing.xl,
-    textAlign: "center",
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: spacing.md,
   },
   pastQuizzesSection: {
     marginBottom: spacing.lg,
