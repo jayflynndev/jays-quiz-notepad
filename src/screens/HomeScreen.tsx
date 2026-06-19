@@ -1,76 +1,85 @@
 import React, { useState } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-import { View, StyleSheet, Text, ScrollView } from "react-native";
+import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AdBanner } from "../components/AdBanner";
 import { AppButton } from "../components/AppButton";
-import { QuizCard } from "../components/QuizCard";
-import { useCurrentQuiz } from "../hooks/useCurrentQuiz";
+import {
+  QuizCard,
+  type QuizAnswerSheetState,
+} from "../components/QuizCard";
+import { useHomeQuizzes } from "../hooks/useHomeQuizzes";
 import {
   listSavedAnswerSheets,
-  type SavedAnswerSheetSummary,
+  loadAnswerSheetForQuiz,
 } from "../lib/storage/answerSheetStorage";
 import { colors } from "../theme/colors";
 import { spacing } from "../theme/spacing";
+import {
+  calculateAnswerSheetScore,
+  isAnswerSheetCompleted,
+  TOTAL_SCORABLE_ANSWERS,
+} from "../types/answerSheet";
 import type { HomeScreenProps } from "../navigation/types";
 
-function getQuizFallbackMessage(errorMessage: string | null) {
+const NOT_PLAYED: QuizAnswerSheetState = { status: "not-played" };
+
+function getQuizErrorMessage(errorMessage: string | null) {
   if (errorMessage === null) {
     return null;
   }
 
   if (errorMessage.includes("not configured")) {
-    return "Firebase is not configured. Showing local fallback.";
-  }
-
-  if (errorMessage.includes("not found")) {
-    return "Firestore current quiz reference or quiz document was not found. Showing local fallback.";
+    return "Firebase is not configured, so quizzes cannot be loaded.";
   }
 
   if (errorMessage.includes("invalid shape")) {
-    return "Firestore quiz reference or quiz data has invalid fields. Showing local fallback.";
+    return "A Firestore quiz has invalid fields and could not be displayed.";
   }
 
   if (errorMessage.includes("permission-denied")) {
-    return "Firestore rules blocked the quiz read. Showing local fallback.";
+    return "Firestore rules blocked the quiz read.";
   }
 
-  return "Unable to load Firestore quiz. Showing local fallback.";
-}
-
-function formatSavedAt(updatedAt: string) {
-  const date = new Date(updatedAt);
-
-  if (Number.isNaN(date.getTime())) {
-    return updatedAt;
-  }
-
-  return new Intl.DateTimeFormat(undefined, {
-    day: "numeric",
-    month: "short",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(date);
+  return "Unable to load quizzes from Firestore.";
 }
 
 export function HomeScreen({ navigation }: HomeScreenProps) {
-  const { currentQuiz, isLoading, errorMessage } = useCurrentQuiz();
-  const [savedSheets, setSavedSheets] = useState<SavedAnswerSheetSummary[]>([]);
-  const fallbackMessage = getQuizFallbackMessage(errorMessage);
+  const { nextQuiz, recentQuizzes, isLoading, errorMessage } =
+    useHomeQuizzes();
+  const [answerSheetStates, setAnswerSheetStates] = useState(
+    new Map<string, QuizAnswerSheetState>()
+  );
+  const quizErrorMessage = getQuizErrorMessage(errorMessage);
 
   useFocusEffect(
     React.useCallback(() => {
       let isActive = true;
 
-      async function loadSavedSheets() {
-        const sheets = await listSavedAnswerSheets();
+      async function loadAnswerSheetStates() {
+        const savedSheets = await listSavedAnswerSheets();
+        const stateEntries = await Promise.all(
+          savedSheets.map(async (savedSheet) => {
+            const answerSheet = await loadAnswerSheetForQuiz(savedSheet.quizId);
+            const state: QuizAnswerSheetState =
+              answerSheet !== null && isAnswerSheetCompleted(answerSheet)
+                ? {
+                    status: "completed",
+                    score: calculateAnswerSheetScore(answerSheet),
+                    total: TOTAL_SCORABLE_ANSWERS,
+                  }
+                : { status: "in-progress" };
+
+            return [savedSheet.quizId, state] as const;
+          })
+        );
 
         if (isActive) {
-          setSavedSheets(sheets);
+          setAnswerSheetStates(new Map(stateEntries));
         }
       }
 
-      void loadSavedSheets();
+      void loadAnswerSheetStates();
 
       return () => {
         isActive = false;
@@ -85,18 +94,11 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
         contentContainerStyle={styles.content}
       >
         <View style={styles.headerSection}>
-          <Text style={styles.title}>Jay's Quiz Notepad</Text>
+          <Text style={styles.title}>Jay's Quiz</Text>
           <Text style={styles.subtitle}>
-            Watch the quiz and write your answers in one place.
+            Choose a quiz to watch and open its answer sheet.
           </Text>
         </View>
-
-        <QuizCard
-          quiz={currentQuiz}
-          isLoading={isLoading}
-          fallbackMessage={fallbackMessage}
-          onPressAnswerSheet={() => navigation.navigate("AnswerSheet")}
-        />
 
         <View style={styles.buttonSection}>
           <AppButton
@@ -106,47 +108,81 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
           />
         </View>
 
-        {savedSheets.length > 0 ? (
-          <View style={styles.previousSheetsSection}>
-            <View style={styles.sectionHeaderRow}>
-              <Text style={styles.sectionHeading}>Previous Sheets</Text>
-              <Text style={styles.sectionCount}>{savedSheets.length}</Text>
+        {quizErrorMessage !== null ? (
+          <Text style={styles.errorText}>{quizErrorMessage}</Text>
+        ) : null}
+
+        {isLoading ? (
+          <Text style={styles.emptyText}>Loading quizzes...</Text>
+        ) : (
+          <>
+            <View style={styles.quizSection}>
+              <Text style={styles.sectionHeading}>Next Quiz</Text>
+              {nextQuiz !== null ? (
+                <QuizCard
+                  quiz={nextQuiz}
+                  answerSheetState={
+                    answerSheetStates.get(nextQuiz.id) ?? NOT_PLAYED
+                  }
+                  onPressAnswerSheet={() =>
+                    navigation.navigate("AnswerSheet", {
+                      quizId: nextQuiz.id,
+                      quizTitle: nextQuiz.title,
+                      youtubeVideoId: nextQuiz.youtubeVideoId,
+                    })
+                  }
+                />
+              ) : (
+                <View style={styles.emptyState}>
+                  <Text style={styles.emptyStateText}>
+                    No upcoming quiz set yet.
+                  </Text>
+                </View>
+              )}
             </View>
-            {savedSheets.map((sheet) => (
-              <View key={sheet.quizId} style={styles.savedSheetRow}>
-                <View style={styles.savedSheetText}>
-                  <Text style={styles.savedSheetTitle}>
-                    {sheet.quizTitle ?? "Saved answer sheet"}
-                  </Text>
-                  <Text style={styles.savedSheetDate}>
-                    Saved {formatSavedAt(sheet.updatedAt)}
-                  </Text>
-                </View>
-                <View style={styles.scoreBadge}>
-                  <Text style={styles.scoreValue}>
-                    {sheet.hasMarkedAnswers ? sheet.score : "-"}
-                  </Text>
-                  <Text style={styles.scoreTotal}>
-                    {sheet.hasMarkedAnswers ? `/ ${sheet.total}` : "Unmarked"}
-                  </Text>
-                </View>
-                <View style={styles.openButtonWrapper}>
-                  <AppButton
-                    title="Open"
-                    variant="secondary"
-                    onPress={() =>
+
+            <View style={styles.quizSection}>
+              <Text style={styles.sectionHeading}>Recent Quizzes</Text>
+              {recentQuizzes.length > 0 ? (
+                recentQuizzes.map((quiz) => (
+                  <QuizCard
+                    key={quiz.id}
+                    quiz={quiz}
+                    answerSheetState={
+                      answerSheetStates.get(quiz.id) ?? NOT_PLAYED
+                    }
+                    onPressAnswerSheet={() =>
                       navigation.navigate("AnswerSheet", {
-                        quizId: sheet.quizId,
-                        quizTitle: sheet.quizTitle,
-                        youtubeVideoId: sheet.youtubeVideoId,
+                        quizId: quiz.id,
+                        quizTitle: quiz.title,
+                        youtubeVideoId: quiz.youtubeVideoId,
                       })
                     }
                   />
+                ))
+              ) : (
+                <View style={styles.emptyState}>
+                  <Text style={styles.emptyStateText}>
+                    No recent quizzes are available yet.
+                  </Text>
                 </View>
-              </View>
-            ))}
-          </View>
-        ) : null}
+              )}
+            </View>
+
+            <View style={styles.pastQuizzesSection}>
+              <AppButton
+                title="See Past Quizzes"
+                variant="secondary"
+                onPress={() =>
+                  Alert.alert(
+                    "Past Quizzes",
+                    "The past quiz archive is coming soon."
+                  )
+                }
+              />
+            </View>
+          </>
+        )}
 
         <View style={styles.adSection}>
           <AdBanner />
@@ -158,8 +194,8 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: colors.background,
+    flex: 1,
   },
   scrollView: {
     flex: 1,
@@ -170,98 +206,64 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xl,
   },
   headerSection: {
-    marginBottom: spacing.xl,
     alignItems: "center",
+    marginBottom: spacing.lg,
   },
   title: {
-    fontSize: 32,
-    fontWeight: "bold",
     color: colors.text,
-    marginBottom: spacing.md,
+    fontSize: 32,
+    fontWeight: "700",
+    marginBottom: spacing.sm,
     textAlign: "center",
   },
   subtitle: {
-    fontSize: 16,
     color: colors.textLight,
-    textAlign: "center",
+    fontSize: 16,
     lineHeight: 24,
+    textAlign: "center",
   },
   buttonSection: {
-    marginTop: spacing.lg,
+    marginBottom: spacing.xl,
   },
-  previousSheetsSection: {
-    marginTop: spacing.xxl,
-  },
-  sectionHeaderRow: {
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: spacing.md,
+  quizSection: {
+    marginBottom: spacing.lg,
   },
   sectionHeading: {
     color: colors.text,
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "700",
+    marginBottom: spacing.md,
   },
-  sectionCount: {
-    backgroundColor: colors.surfaceMuted,
-    borderRadius: 8,
-    color: colors.textMuted,
+  errorText: {
+    color: colors.danger,
     fontSize: 13,
-    fontWeight: "700",
-    overflow: "hidden",
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
+    lineHeight: 20,
+    marginBottom: spacing.lg,
   },
-  savedSheetRow: {
-    alignItems: "center",
+  emptyState: {
     backgroundColor: colors.surface,
     borderColor: colors.border,
     borderRadius: 8,
     borderWidth: 1,
-    flexDirection: "row",
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.xl,
   },
-  savedSheetText: {
-    flex: 1,
-    marginRight: spacing.md,
-  },
-  savedSheetTitle: {
-    color: colors.text,
+  emptyStateText: {
+    color: colors.textMuted,
     fontSize: 15,
-    fontWeight: "700",
-    marginBottom: spacing.xs,
+    textAlign: "center",
   },
-  savedSheetDate: {
+  emptyText: {
     color: colors.textLight,
-    fontSize: 13,
+    fontSize: 15,
+    paddingVertical: spacing.xl,
+    textAlign: "center",
   },
-  scoreBadge: {
-    alignItems: "center",
-    backgroundColor: colors.surfaceMuted,
-    borderRadius: 8,
-    marginRight: spacing.md,
-    minWidth: 76,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.sm,
-  },
-  scoreValue: {
-    color: colors.text,
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  scoreTotal: {
-    color: colors.textLight,
-    fontSize: 12,
-    fontWeight: "700",
-    marginTop: spacing.xs,
-  },
-  openButtonWrapper: {
-    minWidth: 88,
+  pastQuizzesSection: {
+    marginBottom: spacing.lg,
   },
   adSection: {
-    marginTop: spacing.lg,
+    marginTop: spacing.sm,
   },
 });

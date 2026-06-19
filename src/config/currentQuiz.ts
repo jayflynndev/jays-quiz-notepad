@@ -1,7 +1,7 @@
 export type QuizStatus = "upcoming" | "live" | "ended";
 
 export type Quiz = {
-  id?: string;
+  id: string;
   title: string;
   youtubeVideoId: string;
   status: QuizStatus;

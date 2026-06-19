@@ -20,7 +20,6 @@ import { AdBanner } from "../components/AdBanner";
 import { AnswerInput } from "../components/AnswerInput";
 import { AppButton } from "../components/AppButton";
 import { RoundSection } from "../components/RoundSection";
-import { useCurrentQuiz } from "../hooks/useCurrentQuiz";
 import {
   clearSavedAnswerSheetForQuiz,
   loadAnswerSheetForQuiz,
@@ -47,7 +46,6 @@ export function AnswerSheetScreen({
   route,
 }: AnswerSheetScreenProps) {
   const { width } = useWindowDimensions();
-  const { currentQuiz, isLoading: isCurrentQuizLoading } = useCurrentQuiz();
   const hasLoadedSavedAnswers = useRef(false);
   const shouldSkipNextSave = useRef(false);
   const [answerSheet, setAnswerSheet] = useState<AnswerSheetState>(
@@ -55,15 +53,9 @@ export function AnswerSheetScreen({
   );
   const [keepScreenAwakeDuringQuiz, setKeepScreenAwakeDuringQuiz] =
     useState(false);
-  const openedQuizId = route.params?.quizId ?? currentQuiz.id;
-  const openedQuizTitle =
-    route.params?.quizId === undefined
-      ? currentQuiz.title
-      : route.params.quizTitle ?? "Saved answer sheet";
-  const openedQuizVideoId =
-    route.params?.youtubeVideoId ?? currentQuiz.youtubeVideoId;
-  const canUseOpenedQuiz =
-    route.params?.quizId !== undefined || !isCurrentQuizLoading;
+  const openedQuizId = route.params.quizId;
+  const openedQuizTitle = route.params.quizTitle;
+  const openedQuizVideoId = route.params.youtubeVideoId;
   const playerWidth = Math.max(width - spacing.lg * 2, 200);
   const playerHeight = Math.round(playerWidth * (9 / 16));
   const score = calculateAnswerSheetScore(answerSheet);
@@ -111,10 +103,6 @@ export function AnswerSheetScreen({
     let isMounted = true;
 
     async function restoreSavedAnswers() {
-      if (openedQuizId === undefined || !canUseOpenedQuiz) {
-        return;
-      }
-
       hasLoadedSavedAnswers.current = false;
       shouldSkipNextSave.current = false;
       setAnswerSheet(createInitialAnswerSheet());
@@ -137,12 +125,10 @@ export function AnswerSheetScreen({
     return () => {
       isMounted = false;
     };
-  }, [canUseOpenedQuiz, openedQuizId]);
+  }, [openedQuizId]);
 
   useEffect(() => {
     if (
-      openedQuizId === undefined ||
-      !canUseOpenedQuiz ||
       !hasLoadedSavedAnswers.current
     ) {
       return;
@@ -161,7 +147,6 @@ export function AnswerSheetScreen({
     });
   }, [
     answerSheet,
-    canUseOpenedQuiz,
     openedQuizId,
     openedQuizTitle,
     openedQuizVideoId,
@@ -207,10 +192,6 @@ export function AnswerSheetScreen({
   }
 
   function clearAnswers() {
-    if (openedQuizId === undefined) {
-      return;
-    }
-
     shouldSkipNextSave.current = true;
     setAnswerSheet(createInitialAnswerSheet());
     void clearSavedAnswerSheetForQuiz(openedQuizId);

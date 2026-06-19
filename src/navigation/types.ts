@@ -2,13 +2,11 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 export type RootStackParamList = {
   Home: undefined;
-  AnswerSheet:
-    | {
-        quizId?: string;
-        quizTitle?: string | null;
-        youtubeVideoId?: string | null;
-      }
-    | undefined;
+  AnswerSheet: {
+    quizId: string;
+    quizTitle: string;
+    youtubeVideoId: string;
+  };
   Settings: undefined;
 };
 

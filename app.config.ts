@@ -29,15 +29,28 @@ const iosAdMobAppId = getAdMobAppId(
   GOOGLE_SAMPLE_IOS_APP_ID,
 );
 
+const brandingIcon = "./assets/branding/icon.png";
+const splashIcon = "./assets/branding/splash-icon.png";
+const brandPurple = "#5B218E";
+
 const config: ExpoConfig = {
-  name: "jays-quiz-notepad",
-  slug: "jays-quiz-notepad",
+  name: "Jay's Quiz",
+  slug: "jays-quiz",
   version: "1.0.0",
   orientation: "portrait",
-  icon: "./assets/icon.png",
+  icon: brandingIcon,
   userInterfaceStyle: "light",
   newArchEnabled: true,
   plugins: [
+    [
+      "expo-splash-screen",
+      {
+        backgroundColor: brandPurple,
+        image: splashIcon,
+        imageWidth: 220,
+        resizeMode: "contain",
+      },
+    ],
     [
       "react-native-google-mobile-ads",
       {
@@ -47,9 +60,9 @@ const config: ExpoConfig = {
     ],
   ],
   splash: {
-    image: "./assets/splash-icon.png",
+    image: splashIcon,
     resizeMode: "contain",
-    backgroundColor: "#ffffff",
+    backgroundColor: brandPurple,
   },
   ios: {
     supportsTablet: true,
@@ -57,14 +70,14 @@ const config: ExpoConfig = {
   android: {
     package: "com.jaysquiznotepad.app",
     adaptiveIcon: {
-      foregroundImage: "./assets/adaptive-icon.png",
-      backgroundColor: "#ffffff",
+      foregroundImage: brandingIcon,
+      backgroundColor: brandPurple,
     },
     edgeToEdgeEnabled: true,
     predictiveBackGestureEnabled: false,
   },
   web: {
-    favicon: "./assets/favicon.png",
+    favicon: brandingIcon,
   },
 };
 

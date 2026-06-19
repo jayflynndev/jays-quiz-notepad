@@ -56,5 +56,11 @@ export function hasMarkedAnswers(answerSheet: AnswerSheetState) {
   );
 }
 
+export function isAnswerSheetCompleted(answerSheet: AnswerSheetState) {
+  return ROUND_NUMBERS.every((roundNumber) =>
+    answerSheet.marks[roundNumber].every((mark) => mark !== "unmarked")
+  );
+}
+
 export const TOTAL_SCORABLE_ANSWERS =
   ROUND_NUMBERS.length * ANSWERS_PER_ROUND;
