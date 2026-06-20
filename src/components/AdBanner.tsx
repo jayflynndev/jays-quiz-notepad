@@ -1,29 +1,16 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Constants from "expo-constants";
 import {
   Platform,
   StyleSheet,
   Text,
-  TurboModuleRegistry,
   View,
 } from "react-native";
+import {
+  loadGoogleMobileAds,
+  prepareGoogleMobileAds,
+} from "../lib/ads/adConsentService";
 import { colors } from "../theme/colors";
-
-type GoogleMobileAdsModule = typeof import("react-native-google-mobile-ads");
-
-declare const require: (moduleName: string) => unknown;
-
-function loadGoogleMobileAds(): GoogleMobileAdsModule | null {
-  if (TurboModuleRegistry.get("RNGoogleMobileAdsModule") === null) {
-    return null;
-  }
-
-  try {
-    return require("react-native-google-mobile-ads") as GoogleMobileAdsModule;
-  } catch {
-    return null;
-  }
-}
 
 const googleMobileAds = loadGoogleMobileAds();
 
@@ -95,9 +82,28 @@ function getBannerUnitId(testBannerUnitId: string) {
 }
 
 export function AdBanner() {
+  const [canRequestAds, setCanRequestAds] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  if (googleMobileAds === null) {
+  useEffect(() => {
+    if (googleMobileAds === null) {
+      return;
+    }
+
+    let isMounted = true;
+
+    void prepareGoogleMobileAds(googleMobileAds).then((result) => {
+      if (isMounted) {
+        setCanRequestAds(result.canRequestAds);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  if (googleMobileAds === null || !canRequestAds) {
     return <AdBannerFallback />;
   }
 

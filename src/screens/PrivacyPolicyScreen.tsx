@@ -31,10 +31,13 @@ export function PrivacyPolicyScreen({ navigation }: PrivacyPolicyScreenProps) {
 
       <InfoSection title="Advertising">
         Jay's Quiz uses Google AdMob to show banner advertisements. Google and
-        its advertising partners may process information such as your device
-        or advertising identifier, IP address, app interactions, and diagnostic
-        information. Their use of this information is covered by Google's own
-        privacy policies and your device privacy settings.
+        its advertising partners may process information such as your device or
+        advertising identifier, IP address, app interactions, and diagnostic
+        information. Before requesting an ad, the app checks Google's consent
+        requirements and shows a Google consent message where required. Jay's
+        Quiz currently requests non-personalised ads only, even after consent.
+        Google's own privacy policies and your device privacy settings also
+        apply.
       </InfoSection>
 
       <InfoSection title="YouTube videos">
