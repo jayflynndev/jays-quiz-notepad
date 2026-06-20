@@ -113,7 +113,7 @@ const config = {
   ios: {
     bundleIdentifier: appIdentifier,
     buildNumber: appInfo.iosBuildNumber,
-    supportsTablet: true,
+    supportsTablet: false,
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
     },
