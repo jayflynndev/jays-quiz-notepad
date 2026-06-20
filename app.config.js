@@ -1,16 +1,15 @@
-import type { ExpoConfig } from "expo/config";
-import appInfo from "./src/config/appInfo.json";
+const appInfo = require("./src/config/appInfo.json");
 
 const GOOGLE_SAMPLE_ANDROID_APP_ID = "ca-app-pub-3940256099942544~3347511713";
 const GOOGLE_SAMPLE_IOS_APP_ID = "ca-app-pub-3940256099942544~1458002511";
 const GOOGLE_SAMPLE_PUBLISHER_PREFIX = "ca-app-pub-3940256099942544/";
 const isProductionBuild = process.env.EAS_BUILD_PROFILE === "production";
 
-function getAdMobAppId(environmentVariable: string, fallback: string) {
+function getAdMobAppId(environmentVariable, fallback) {
   const value = process.env[environmentVariable]?.trim();
 
   if (!value) {
-    if (process.env.EAS_BUILD_PROFILE === "production") {
+    if (isProductionBuild) {
       throw new Error(
         `${environmentVariable} is required for production builds. Configure it in the EAS production environment.`,
       );
@@ -31,7 +30,7 @@ function getAdMobAppId(environmentVariable: string, fallback: string) {
   return value;
 }
 
-function getProductionBannerUnitId(environmentVariable: string) {
+function getProductionBannerUnitId(environmentVariable) {
   if (!isProductionBuild) {
     return null;
   }
@@ -79,7 +78,8 @@ const splashIcon = "./assets/branding/splash-icon.png";
 const brandPurple = "#5B218E";
 const appIdentifier = "uk.co.quizhub.jaysquiz";
 
-const config: ExpoConfig = {
+/** @type {import("expo/config").ExpoConfig} */
+const config = {
   name: appInfo.appName,
   slug: "jays-quiz",
   version: appInfo.appVersion,
@@ -131,7 +131,6 @@ const config: ExpoConfig = {
   web: {
     favicon: brandingIcon,
   },
-
   extra: {
     adMob: {
       useProductionBannerIds: isProductionBuild,
@@ -144,4 +143,4 @@ const config: ExpoConfig = {
   },
 };
 
-export default config;
+module.exports = config;
