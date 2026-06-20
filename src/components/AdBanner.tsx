@@ -1,5 +1,7 @@
 import React, { useState } from "react";
+import Constants from "expo-constants";
 import {
+  Platform,
   StyleSheet,
   Text,
   TurboModuleRegistry,
@@ -25,6 +27,73 @@ function loadGoogleMobileAds(): GoogleMobileAdsModule | null {
 
 const googleMobileAds = loadGoogleMobileAds();
 
+type EmbeddedAdMobConfig = {
+  androidBannerUnitId: string | null;
+  iosBannerUnitId: string | null;
+  useProductionBannerIds: boolean;
+};
+
+function getEmbeddedAdMobConfig(): EmbeddedAdMobConfig | null {
+  const extra: unknown = Constants.expoConfig?.extra;
+
+  if (typeof extra !== "object" || extra === null) {
+    return null;
+  }
+
+  const candidate = (extra as Record<string, unknown>).adMob;
+
+  if (typeof candidate !== "object" || candidate === null) {
+    return null;
+  }
+
+  const config = candidate as Record<string, unknown>;
+  const androidBannerUnitId = config.androidBannerUnitId;
+  const iosBannerUnitId = config.iosBannerUnitId;
+
+  if (typeof config.useProductionBannerIds !== "boolean") {
+    return null;
+  }
+
+  if (!config.useProductionBannerIds) {
+    return {
+      androidBannerUnitId: null,
+      iosBannerUnitId: null,
+      useProductionBannerIds: false,
+    };
+  }
+
+  if (
+    typeof androidBannerUnitId !== "string" ||
+    typeof iosBannerUnitId !== "string"
+  ) {
+    return null;
+  }
+
+  return {
+    androidBannerUnitId,
+    iosBannerUnitId,
+    useProductionBannerIds: config.useProductionBannerIds,
+  };
+}
+
+function getBannerUnitId(testBannerUnitId: string) {
+  const config = getEmbeddedAdMobConfig();
+
+  if (config?.useProductionBannerIds !== true) {
+    return testBannerUnitId;
+  }
+
+  if (Platform.OS === "android") {
+    return config.androidBannerUnitId;
+  }
+
+  if (Platform.OS === "ios") {
+    return config.iosBannerUnitId;
+  }
+
+  return null;
+}
+
 export function AdBanner() {
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -33,13 +102,18 @@ export function AdBanner() {
   }
 
   const { BannerAd, BannerAdSize, TestIds } = googleMobileAds;
+  const bannerUnitId = getBannerUnitId(TestIds.BANNER);
+
+  if (bannerUnitId === null) {
+    return <AdBannerFallback />;
+  }
 
   return (
     <View style={styles.container}>
       {!isLoaded ? <AdBannerFallback /> : null}
       <View style={styles.nativeBanner}>
         <BannerAd
-          unitId={TestIds.BANNER}
+          unitId={bannerUnitId}
           size={BannerAdSize.BANNER}
           requestOptions={{ requestNonPersonalizedAdsOnly: true }}
           onAdLoaded={() => setIsLoaded(true)}

@@ -21,8 +21,9 @@ Configure the variables listed in `.env.example` in the matching EAS
 `development`, `preview`, and `production` environments. Local `.env` files are
 ignored by Git and must not be committed.
 
-Production must use the real AdMob app IDs. Banner ads remain configured to use
-Google test banner unit IDs until a later milestone explicitly changes them.
+Production must use real AdMob app IDs and real platform banner unit IDs.
+Development and preview builds always use Google's test banner unit ID, even if
+production banner values exist in a local or EAS environment.
 
 Create or update each project variable for all three EAS environments. These
 values are bundled into the app, so `plaintext` is appropriate; they must not be
@@ -37,11 +38,14 @@ npx eas-cli env:create --scope project --name EXPO_PUBLIC_FIREBASE_MESSAGING_SEN
 npx eas-cli env:create --scope project --name EXPO_PUBLIC_FIREBASE_APP_ID --environment development --environment preview --environment production --visibility plaintext
 npx eas-cli env:create --scope project --name EXPO_PUBLIC_ADMOB_ANDROID_APP_ID --environment development --environment preview --environment production --visibility plaintext
 npx eas-cli env:create --scope project --name EXPO_PUBLIC_ADMOB_IOS_APP_ID --environment development --environment preview --environment production --visibility plaintext
+npx eas-cli env:create --scope project --name EXPO_PUBLIC_ADMOB_ANDROID_BANNER_UNIT_ID --environment production --visibility plaintext
+npx eas-cli env:create --scope project --name EXPO_PUBLIC_ADMOB_IOS_BANNER_UNIT_ID --environment production --visibility plaintext
 ```
 
 Each command prompts for the value, keeping real values out of this repository
-and out of copied command lines. A production EAS build now stops during config
-resolution if either AdMob App ID is missing.
+and out of copied command lines. A production EAS build stops during config
+resolution if an AdMob App ID or banner unit ID is missing, malformed, or uses
+Google's sample publisher ID.
 
 ## EAS project linkage
 

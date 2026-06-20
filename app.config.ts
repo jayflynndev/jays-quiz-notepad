@@ -3,6 +3,8 @@ import appInfo from "./src/config/appInfo.json";
 
 const GOOGLE_SAMPLE_ANDROID_APP_ID = "ca-app-pub-3940256099942544~3347511713";
 const GOOGLE_SAMPLE_IOS_APP_ID = "ca-app-pub-3940256099942544~1458002511";
+const GOOGLE_SAMPLE_PUBLISHER_PREFIX = "ca-app-pub-3940256099942544/";
+const isProductionBuild = process.env.EAS_BUILD_PROFILE === "production";
 
 function getAdMobAppId(environmentVariable: string, fallback: string) {
   const value = process.env[environmentVariable]?.trim();
@@ -29,6 +31,34 @@ function getAdMobAppId(environmentVariable: string, fallback: string) {
   return value;
 }
 
+function getProductionBannerUnitId(environmentVariable: string) {
+  if (!isProductionBuild) {
+    return null;
+  }
+
+  const value = process.env[environmentVariable]?.trim();
+
+  if (!value) {
+    throw new Error(
+      `${environmentVariable} is required for production builds. Configure it in the EAS production environment.`,
+    );
+  }
+
+  if (!/^ca-app-pub-\d+\/\d+$/.test(value)) {
+    throw new Error(
+      `${environmentVariable} must be a banner ad unit ID in ca-app-pub-.../... format.`,
+    );
+  }
+
+  if (value.startsWith(GOOGLE_SAMPLE_PUBLISHER_PREFIX)) {
+    throw new Error(
+      `${environmentVariable} must use a production AdMob banner unit ID, not a Google sample ID.`,
+    );
+  }
+
+  return value;
+}
+
 const androidAdMobAppId = getAdMobAppId(
   "EXPO_PUBLIC_ADMOB_ANDROID_APP_ID",
   GOOGLE_SAMPLE_ANDROID_APP_ID,
@@ -36,6 +66,12 @@ const androidAdMobAppId = getAdMobAppId(
 const iosAdMobAppId = getAdMobAppId(
   "EXPO_PUBLIC_ADMOB_IOS_APP_ID",
   GOOGLE_SAMPLE_IOS_APP_ID,
+);
+const androidBannerUnitId = getProductionBannerUnitId(
+  "EXPO_PUBLIC_ADMOB_ANDROID_BANNER_UNIT_ID",
+);
+const iosBannerUnitId = getProductionBannerUnitId(
+  "EXPO_PUBLIC_ADMOB_IOS_BANNER_UNIT_ID",
 );
 
 const brandingIcon = "./assets/branding/icon.png";
@@ -97,6 +133,11 @@ const config: ExpoConfig = {
   },
 
   extra: {
+    adMob: {
+      useProductionBannerIds: isProductionBuild,
+      ...(androidBannerUnitId === null ? {} : { androidBannerUnitId }),
+      ...(iosBannerUnitId === null ? {} : { iosBannerUnitId }),
+    },
     eas: {
       projectId: "cb3dadc1-47e2-4748-b740-54471038615c",
     },
