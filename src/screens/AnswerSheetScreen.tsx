@@ -20,6 +20,7 @@ import YoutubeIframe from "react-native-youtube-iframe";
 import { AdBanner } from "../components/AdBanner";
 import { AnswerInput } from "../components/AnswerInput";
 import { AppButton } from "../components/AppButton";
+import { IconButton } from "../components/IconButton";
 import { RoundSection } from "../components/RoundSection";
 import { StatePanel } from "../components/StatePanel";
 import { useAnswerSheetAutosave } from "../hooks/useAnswerSheetAutosave";
@@ -254,6 +255,15 @@ export function AnswerSheetScreen({
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.stickyPlayerSection}>
           <View style={styles.playerHeader}>
+            <View style={styles.playerBackButton}>
+              <IconButton
+                accessibilityLabel="Return Home"
+                symbol={"\u2190"}
+                onPress={() => {
+                  void returnHome();
+                }}
+              />
+            </View>
             <View style={styles.liveMarker} />
             <View style={styles.playerHeaderText}>
               <Text style={styles.playerLabel}>QUIZ VIDEO</Text>
@@ -288,16 +298,6 @@ export function AnswerSheetScreen({
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.topNavigationSection}>
-            <AppButton
-              title="Return Home"
-              variant="secondary"
-              onPress={() => {
-                void returnHome();
-              }}
-            />
-          </View>
-
           <View style={styles.adSection}>
             <AdBanner />
           </View>
@@ -405,6 +405,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     marginBottom: spacing.sm,
   },
+  playerBackButton: {
+    marginRight: spacing.md,
+  },
   liveMarker: {
     backgroundColor: colors.accent,
     borderRadius: 4,
@@ -435,9 +438,6 @@ const styles = StyleSheet.create({
   },
   adSection: {
     marginBottom: spacing.lg,
-  },
-  topNavigationSection: {
-    marginBottom: spacing.md,
   },
   heading: {
     fontSize: 28,

@@ -4,6 +4,7 @@ import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AdBanner } from "../components/AdBanner";
 import { AppButton } from "../components/AppButton";
+import { IconButton } from "../components/IconButton";
 import { StatePanel } from "../components/StatePanel";
 import {
   QuizCard,
@@ -105,18 +106,15 @@ export function HomeScreen({ navigation }: HomeScreenProps) {
               <Text style={styles.eyebrow}>QUIZHUB</Text>
               <Text style={styles.title}>Jay's Quiz</Text>
             </View>
+            <IconButton
+              accessibilityLabel="Open Settings"
+              symbol={"\u2699\uFE0E"}
+              onPress={() => navigation.navigate("Settings")}
+            />
           </View>
           <Text style={styles.subtitle}>
             Watch, answer and keep every score in one place.
           </Text>
-        </View>
-
-        <View style={styles.buttonSection}>
-          <AppButton
-            title="Settings"
-            variant="secondary"
-            onPress={() => navigation.navigate("Settings")}
-          />
         </View>
 
         {quizErrorMessage !== null ? (
@@ -262,9 +260,6 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     fontSize: 16,
     lineHeight: 24,
-  },
-  buttonSection: {
-    marginBottom: spacing.xl,
   },
   quizSection: {
     marginBottom: spacing.lg,

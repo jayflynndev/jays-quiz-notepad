@@ -20,20 +20,20 @@ interface QuizCardProps {
 function formatQuizStatus(status: QuizStatus) {
   switch (status) {
     case "live":
-      return "Live";
+      return "Quiz live";
     case "upcoming":
-      return "Upcoming";
+      return "Quiz upcoming";
     case "ended":
-      return "Completed";
+      return "Quiz completed";
   }
 }
 
 function formatAnswerSheetStatus(status: QuizAnswerSheetState["status"]) {
   switch (status) {
     case "not-played":
-      return "Not Played";
+      return "Not played";
     case "in-progress":
-      return "In Progress";
+      return "In progress";
     case "completed":
       return "Completed";
   }
@@ -155,7 +155,7 @@ export function QuizCard({
 
       <View style={styles.sheetSummary}>
         <View style={styles.sheetTextSection}>
-          <Text style={styles.sheetLabel}>Answer sheet</Text>
+          <Text style={styles.sheetLabel}>Your answer sheet</Text>
           <View
             style={[
               styles.sheetState,
@@ -174,7 +174,7 @@ export function QuizCard({
         </View>
         {answerSheetState.status === "completed" ? (
           <View style={styles.scoreSection}>
-            <Text style={styles.scoreLabel}>SCORE</Text>
+            <Text style={styles.scoreLabel}>YOUR SCORE</Text>
             <Text style={styles.score}>
               {answerSheetState.score}
               <Text style={styles.scoreTotal}> / {answerSheetState.total}</Text>
@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
   },
   statusText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "700",
   },
   liveBadge: {
