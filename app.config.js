@@ -102,6 +102,7 @@ const config = {
       {
         androidAppId: androidAdMobAppId,
         iosAppId: iosAdMobAppId,
+        delayAppMeasurementInit: true,
       },
     ],
   ],
